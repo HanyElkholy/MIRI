@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../AHMTIMUS/Projekte/Zeiterfassungssystem (ZES)/zeiterfassung-backend"
+		},
+		{
+			"name": "zes-hardware-terminal",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
