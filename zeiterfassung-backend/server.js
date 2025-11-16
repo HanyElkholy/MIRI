@@ -87,8 +87,7 @@ app.post('/api/v1/stamp', (req, res) => {
   liveStampData.unshift(newStamp); 
 
   // Sende Erfolgsantwort an den ESP32 (und den Namen für das Display)
-  res.status(200).json({ status: "success", user: userName });
-});
+res.status(200).json({ status: "success", user: userName, type: newType });});
 // ==================================================================
 
 
