@@ -1,0 +1,11 @@
+/* Standardmäßig ist die Zeiterfassungsseite (Dashboard) ausgeblendet.*/
+#tracker-page {
+  display: none;
+}
+
+/* Standardmäßig sind die zusätzlichen Inhaltsseiten ausgeblendet.
+   Die 'Übersicht' (content-overview) wird im JS beim Login aktiv angezeigt. */
+#content-live-tracker,
+#content-monthly-report {
+  display: none;
+}
