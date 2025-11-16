@@ -2,139 +2,205 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-// Bibliotheken aus platformio.ini
 #include <SPI.h>
 #include <MFRC522.h>
-#include <ArduinoJson.h> // Zum Senden von JSON
+#include <ArduinoJson.h> 
+#include <TFT_eSPI.h> // Die funktionierende Display-Bibliothek
 
-// --- 🔴🔴🔴 UNBEDINGT ANPASSEN 🔴🔴🔴 ---
+// --- DEINE DATEN (Aus deinem letzten Code) ---
+const char* ssid = "FRITZ!Box 7520 FW";
+const char* password = "27789451587160632705";
+const char* serverName = "http://192.168.178.107:3001/api/v1/stamp"; 
 
-// 1. Deine WLAN-Daten
-const char* ssid = "MagentaWLAN-29Q3";
-const char* password = "Esenha2022#";
+// --- Pin-Definition für MFRC522 ---
+// (Die SPI-Pins 18, 19, 23 werden geteilt)
+#define MFRC522_RST_PIN  4   // NEUER PIN! (war 22, aber 22 ist jetzt TFT_CS)
+#define MFRC522_SS_PIN   5   
 
-// 2. Die IP-Adresse deines PCs (wo das Backend läuft)
-//    Führe 'cmd' aus und tippe 'ipconfig', um deine 'IPv4-Adresse' zu finden
-const char* serverName = "http://192.168.2.201:3001/api/v1/stamp"; 
+// --- Globale Objekte ---
+MFRC522 mfrc522(MFRC522_SS_PIN, MFRC522_RST_PIN); 
+TFT_eSPI tft = TFT_eSPI(); // Das Display-Objekt
+String lastCardId = "";
+unsigned long lastSendTime = 0;
 
-// ---------------------------------------------------
 
-// Pin-Definition für MFRC522 (basierend auf unserer Verkabelung)
-#define RST_PIN   22  // Reset-Pin
-#define SS_PIN    5    // Chip-Select-Pin (SDA)
+// --- DISPLAY-FUNKTIONEN (Angepasst an TFT_eSPI) ---
 
-// Globale Objekte
-MFRC522 mfrc522(SS_PIN, RST_PIN);  
-String lastCardId = ""; // Speichert die letzte Karten-ID
-unsigned long lastSendTime = 0; // Speichert, wann zuletzt gesendet wurde
-
-// Funktion, um die Stempelung an den Server zu senden
-void sendStampToServer(String cardId) {
+void displayWelcome() {
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_CYAN, TFT_BLACK);
+  tft.setTextDatum(MC_DATUM); // MC_DATUM = Middle Center (Text zentrieren)
   
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(serverName);
-    http.addHeader("Content-Type", "application/json"); // Sagen, dass wir JSON senden
-
-    // JSON-Dokument erstellen (benötigt ArduinoJson)
-    JsonDocument doc;
-    doc["cardId"] = cardId;
-
-    // JSON in einen String umwandeln
-    String jsonPayload;
-    serializeJson(doc, jsonPayload);
-
-    Serial.print("Sende JSON an Server: ");
-    Serial.println(jsonPayload);
-
-    // HTTP POST-Anfrage senden
-    int httpResponseCode = http.POST(jsonPayload);
-
-    // Antwort vom Server auswerten
-    if (httpResponseCode > 0) {
-      String payload = http.getString();
-      Serial.print("HTTP Antwort-Code: ");
-      Serial.println(httpResponseCode);
-      Serial.print("Antwort-Payload: ");
-      Serial.println(payload); // z.B. {"status":"success","user":"Max Mustermann"}
-    } else {
-      Serial.print("Fehler bei HTTP POST. Code: ");
-      Serial.println(httpResponseCode); // z.B. -1 (Connection refused)
-    }
-    
-    http.end(); // Verbindung schließen
-  } else {
-    Serial.println("Fehler: WLAN nicht verbunden.");
-  }
+  tft.setTextFont(4); // Lade Schriftart 4
+  tft.drawString("AHMTIMUS ZES", tft.width() / 2, tft.height() / 2 - 50);
+  
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.drawString("Bitte Karte", tft.width() / 2, tft.height() / 2 + 10);
+  tft.drawString("auflegen", tft.width() / 2, tft.height() / 2 + 40);
+  
+  tft.setTextFont(1); // Zurück auf Standard-Schrift
+  Serial.println("Display: Welcome-Screen angezeigt.");
 }
 
-void setup() {
-  Serial.begin(115200); // Startet den seriellen Monitor (für Debugging)
-  delay(1000);
+void displaySuccess(String name) {
+  tft.fillScreen(TFT_GREEN);
+  tft.setTextColor(TFT_BLACK, TFT_GREEN);
+  tft.setTextDatum(MC_DATUM); 
+  
+  tft.setTextFont(7); // Lade Schriftart 7 (aus build_flags)
+  tft.drawString("Willkommen,", tft.width() / 2, tft.height() / 2 - 30);
+  tft.drawString(name, tft.width() / 2, tft.height() / 2 + 30);
+  
+  tft.setTextFont(1); 
+  Serial.println("Display: Erfolg angezeigt.");
+  
+  delay(2500);
+  displayWelcome();
+}
 
-  // 1. Mit WLAN verbinden
+void displayError(String error) {
+  tft.fillScreen(TFT_RED);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.setTextDatum(MC_DATUM);
+
+  tft.setTextFont(7); 
+  tft.drawString("FEHLER", tft.width() / 2, tft.height() / 2 - 30);
+  
+  tft.setTextFont(4); 
+  tft.drawString(error, tft.width() / 2, tft.height() / 2 + 30);
+  
+  tft.setTextFont(1); 
+  Serial.println("Display: Fehler angezeigt.");
+
+  delay(2500);
+  displayWelcome();
+}
+
+
+// --- Server-Funktion (unverändert) ---
+void sendStampToServer(String cardId) {
+  
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("Fehler: WLAN nicht verbunden.");
+    displayError("Kein WLAN");
+    return;
+  }
+
+  HTTPClient http;
+  http.begin(serverName);
+  http.addHeader("Content-Type", "application/json"); 
+
+  JsonDocument doc;
+  doc["cardId"] = cardId;
+  String jsonPayload;
+  serializeJson(doc, jsonPayload);
+
+  Serial.print("Sende JSON an Server: ");
+  Serial.println(jsonPayload);
+
+  int httpResponseCode = http.POST(jsonPayload);
+
+  if (httpResponseCode > 0) {
+    String payload = http.getString();
+    Serial.println("Antwort erhalten:");
+    Serial.println(payload);
+
+    if (httpResponseCode == 200) {
+      JsonDocument docResponse;
+      deserializeJson(docResponse, payload);
+      String userName = docResponse["user"]; 
+      
+      if (userName.length() > 0) {
+        displaySuccess(userName);
+      } else {
+        displayError("Fehler: Name"); 
+      }
+    } else {
+      displayError("Karte ungueltig"); // z.B. 404
+    }
+  } else {
+    Serial.print("Fehler bei HTTP POST. Code: ");
+    Serial.println(httpResponseCode);
+    displayError("Server-Fehler"); // z.B. -1
+  }
+  
+  http.end(); 
+}
+
+// --- SETUP (Zusammengeführt) ---
+void setup() {
+  Serial.begin(115200); 
+  delay(1000);
+  Serial.println("=== FULL STACK ZES START ===");
+
+  // WICHTIG: SPI-Bus starten (nur einmal!)
+  SPI.begin(); 
+
+  // 1. Display initialisieren
+  Serial.println("Initialisiere TFT_eSPI Display...");
+  tft.init();
+  tft.setRotation(1); // 0=Portrait, 1=Landscape, 2=Portrait(180), 3=Landscape(180)
+  tft.setTextFont(4); 
+  displayWelcome(); 
+
+  // 2. Mit WLAN verbinden
   Serial.print("Verbinde mit WLAN: ");
   Serial.println(ssid);
+  tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+  tft.setTextDatum(BL_DATUM); // Bottom-Left Datum
+  tft.setTextFont(2); // Kleine Schrift (Font 2)
+  tft.drawString("Verbinde WLAN...", 10, tft.height() - 10);
+  
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500); 
     Serial.print(".");
   }
   Serial.println("\nErfolgreich mit WLAN verbunden!");
-  Serial.print("ESP32 IP-Adresse: ");
-  Serial.println(WiFi.localIP());
+  displayWelcome(); // WLAN-Text überschreiben
 
-  // 2. MFRC522 (NFC-Leser) initialisieren
+  // 3. MFRC522 (NFC-Leser) initialisieren
   Serial.println("Initialisiere MFRC522-Leser...");
-  SPI.begin(); // SPI-Bus starten
-  mfrc522.PCD_Init(); // MFRC522 starten
-  mfrc522.PCD_DumpVersionToSerial(); // Zeigt die Version im Monitor an
+  mfrc522.PCD_Init(); 
+  mfrc522.PCD_DumpVersionToSerial(); 
   Serial.println("-----------------------------------------");
   Serial.println("NFC-Leser ist bereit. Bitte Karte auflegen!");
   Serial.println("-----------------------------------------");
 }
 
+// --- LOOP (Unverändert) ---
 void loop() {
-  // Loop schaut die ganze Zeit nach neuen Karten
-
-  // 1. Prüfen, ob eine neue Karte vorhanden ist
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
-    delay(50); // Kurz warten, um CPU nicht zu überlasten
-    return;    // Nichts zu tun, starte den Loop neu
+    delay(50); 
+    return;
   }
-
-  // 2. Prüfen, ob die Karte gelesen werden kann
   if ( ! mfrc522.PICC_ReadCardSerial()) {
     delay(50);
-    return;    // Karte war da, aber konnte nicht gelesen werden
+    return;
   }
 
-  // 3. Karte ist da! UID (Karten-ID) auslesen
   String cardId = "";
   for (byte i = 0; i < mfrc522.uid.size; i++) {
-    // Führende Nullen hinzufügen (z.B. "A" wird "0A")
     if (mfrc522.uid.uidByte[i] < 0x10) { cardId += "0"; }
     cardId += String(mfrc522.uid.uidByte[i], HEX);
   }
-  cardId.toUpperCase(); // Stellt sicher, dass alle Buchstaben groß sind (z.B. "BA59E52A")
+  cardId.toUpperCase(); 
 
   Serial.print("Karte erkannt! UID: ");
   Serial.println(cardId);
 
-  // 4. "Entprellen" (Debouncing): Sende dieselbe Karte nicht 10x pro Sekunde
-  unsigned long currentTime = millis(); // Aktuelle Millisekunden seit Start
-  
+  unsigned long currentTime = millis();
   if (cardId == lastCardId && (currentTime - lastSendTime) < 5000) {
-    // Dieselbe Karte wurde innerhalb der letzten 5 Sekunden schonmal gesendet
     Serial.println("Doppelte Stempelung, wird ignoriert.");
   } else {
-    // Es ist eine NEUE Karte ODER es sind >5 Sekunden vergangen
     sendStampToServer(cardId);
-    lastCardId = cardId; // Merke dir diese Karte
-    lastSendTime = currentTime; // Merke dir die Sendezeit
+    lastCardId = cardId; 
+    lastSendTime = currentTime; 
+
+    // MFRC522 nach der Server-Kommunikation re-initialisieren
+    mfrc522.PCD_Init();
   }
 
-  // Wichtig: Karte "schlafen legen", damit sie als "neu" erkannt wird, wenn sie das nächste Mal kommt
   mfrc522.PICC_HaltA();
   mfrc522.PCD_StopCrypto1();
 
