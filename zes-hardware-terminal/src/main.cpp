@@ -221,7 +221,7 @@ void sendStampToServer(String cardId) {
           displayResult("Fehler", "Name (JSON)", TFT_RED); 
         }
       } else {
-        displayResult("Fehler", "Karte ungueltig", TFT_ORANGE); 
+        displayResult("Fehler", "Karte ungueltig", TFT_RED); 
       }
     } else {
       Serial.print("Fehler bei HTTP POST. Code: ");
