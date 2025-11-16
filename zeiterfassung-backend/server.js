@@ -10,11 +10,11 @@ app.use(express.json());
 
 // 1. Simuliert unsere Benutzer-Tabelle
 const userDatabase = {
-  "BA59E52A": "Max Mustermann",
+  "B46D2D54": "Max Mustermann",
   "A1B2C3D4": "Erika Mustermann",
-  "FE4DC5BA": "Peter Schmidt",
+  "73A96611": "Peter Schmidt",
   // Tragen Sie hier die UID Ihrer Testkarte ein:
-  "6375B20B": "Ihr Name" 
+  "6375B20B": "Francesco alvejro" 
 };
 
 // 2. Hier speichern wir alle "echten" Stempelungen, die reinkommen
