@@ -1,0 +1,170 @@
+{
+  "users": [
+    {
+      "id": 101,
+      "cardId": "6375B30B",
+      "username": "admin",
+      "password": "admin",
+      "role": "admin",
+      "displayName": "Herr Müller (Admin)"
+    },
+    {
+      "id": 102,
+      "cardId": "6375B20B",
+      "username": "nils",
+      "password": "nils",
+      "role": "user",
+      "displayName": "Nils Müller"
+    },
+    {
+      "id": 103,
+      "cardId": "A1B2C3D4",
+      "username": "erika",
+      "password": "erika",
+      "role": "user",
+      "displayName": "Erika Mustermann"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1763839901616,
+      "userId": 102,
+      "date": "2025-11-07",
+      "start": "12:02",
+      "end": "21:02",
+      "remarks": "Nachtrag: 32e",
+      "type": "valid"
+    },
+    {
+      "id": 1763842129245,
+      "userId": 101,
+      "date": "2025-11-22",
+      "start": "21:08",
+      "end": "",
+      "remarks": "",
+      "type": "valid"
+    },
+    {
+      "id": 1763842238281,
+      "userId": 102,
+      "date": "2025-11-22",
+      "start": "21:10",
+      "end": "23:00",
+      "remarks": "",
+      "type": "valid"
+    },
+    {
+      "id": 1763842537575,
+      "userId": 102,
+      "date": "2025-11-23",
+      "start": "12:00",
+      "end": "21:21",
+      "remarks": "Testasfdsafdsafdsafsafdsafdsafsafdsafdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "type": "valid",
+      "history": [
+        {
+          "changedAt": "2025-11-23T15:42:58.403Z",
+          "changedBy": "Herr Müller (Admin)",
+          "type": "Manuelle Korrektur",
+          "oldStart": "03:00",
+          "oldEnd": "21:21",
+          "oldRemarks": "Nachtragsad"
+        },
+        {
+          "changedAt": "2025-11-23T15:44:53.539Z",
+          "changedBy": "Herr Müller (Admin)",
+          "type": "Manuelle Korrektur",
+          "oldStart": "12:00",
+          "oldEnd": "21:21",
+          "oldRemarks": "Test"
+        }
+      ],
+      "isEdited": true
+    },
+    {
+      "id": 1763912408346,
+      "userId": 102,
+      "date": "0012-02-12",
+      "start": "23:33",
+      "end": "21:02",
+      "remarks": "Nachtrag: Urlaub",
+      "type": "valid",
+      "history": [
+        {
+          "changedAt": "2025-11-23T15:40:08.345Z",
+          "changedBy": "admin",
+          "type": "Antragsgenehmigung",
+          "oldStart": null,
+          "oldEnd": null
+        }
+      ],
+      "isEdited": true
+    },
+    {
+      "id": 1763913499473,
+      "userId": 101,
+      "date": "2002-11-11",
+      "start": "11:11",
+      "end": "12:12",
+      "remarks": "Nachtrag: asfsafsfd",
+      "type": "valid",
+      "history": [
+        {
+          "changedAt": "2025-11-23T15:58:19.472Z",
+          "changedBy": "admin",
+          "type": "Antragsgenehmigung",
+          "oldStart": null,
+          "oldEnd": null
+        }
+      ],
+      "isEdited": true
+    }
+  ],
+  "requests": [
+    {
+      "id": 1763839826820,
+      "userId": 102,
+      "date": "2025-11-07",
+      "newStart": "12:02",
+      "newEnd": "21:02",
+      "reason": "32e",
+      "status": "approved"
+    },
+    {
+      "id": 1763842510250,
+      "userId": 102,
+      "date": "2025-11-23",
+      "newStart": "10:00",
+      "newEnd": "21:21",
+      "reason": "sdfdsaf",
+      "status": "approved"
+    },
+    {
+      "id": 1763912378818,
+      "userId": 102,
+      "date": "0012-02-12",
+      "newStart": "23:33",
+      "newEnd": "21:02",
+      "reason": "Urlaub",
+      "status": "approved"
+    },
+    {
+      "id": 1763912447198,
+      "userId": 102,
+      "date": "0022-02-11",
+      "newStart": "12:02",
+      "newEnd": "03:22",
+      "reason": "Udsffsa",
+      "status": "rejected"
+    },
+    {
+      "id": 1763913470410,
+      "userId": 101,
+      "date": "2002-11-11",
+      "newStart": "11:11",
+      "newEnd": "12:12",
+      "reason": "asfsafsfd",
+      "status": "approved"
+    }
+  ]
+}

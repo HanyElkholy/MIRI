@@ -1,11 +1,35 @@
-/* Standardmäßig ist die Zeiterfassungsseite (Dashboard) ausgeblendet.*/
-#tracker-page {
-  display: none;
-}
+/* Navigation Buttons */
+.nav-button { padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; }
+.active-nav { background-color: #1e3a8a; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+.inactive-nav { color: #d1d5db; }
+.inactive-nav:hover { background-color: #374151; color: white; }
 
-/* Standardmäßig sind die zusätzlichen Inhaltsseiten ausgeblendet.
-   Die 'Übersicht' (content-overview) wird im JS beim Login aktiv angezeigt. */
-#content-live-tracker,
-#content-monthly-report {
-  display: none;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #0a192f; }
+::-webkit-scrollbar-thumb { background: #1e3a8a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+
+/* Logo */
+.logo-container { display: flex; align-items: center; gap: 20px; }
+.logo-icon { width: 80px; height: 80px; color: #004e82; transition: color 0.3s; }
+.logo-text { display: flex; flex-direction: column; justify-content: center; }
+.brand-name { font-family: 'Exo 2', sans-serif; font-size: 3.2rem; font-weight: 700; color: #004e82; line-height: 0.9; letter-spacing: 0.05em; text-transform: uppercase; }
+.slogan { font-family: 'Exo 2', sans-serif; font-size: 1rem; color: #004e82; font-weight: 300; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.2em; display: flex; align-items: center; gap: 10px; }
+
+/* Header Logo */
+.logo-header .logo-icon { width: 40px; height: 40px; color: #ffffff; }
+.logo-header .brand-name { font-size: 1.8rem; color: #ffffff; }
+.logo-header { gap: 12px; }
+
+/* Kalender */
+.calendar-day { min-height: 100px; background-color: #111827; padding: 0.5rem; display: flex; flex-direction: column; justify-content: space-between; border-radius: 0.375rem; transition: all 0.2s; border: 1px solid #1f2937; position: relative; }
+.calendar-day:hover { background-color: #1f2937; border-color: #374151; }
+.calendar-day-empty { background-color: transparent; border: none; }
+.calendar-date-number { font-size: 0.875rem; font-weight: 700; color: #6b7280; }
+.calendar-day-weekend { background-color: #0d121d; }
+.calendar-day-weekend .calendar-date-number { color: #3b82f6; }
+
+.cal-entry { font-size: 0.75rem; padding: 2px 4px; border-radius: 4px; margin-top: auto; text-align: center; font-weight: 500; }
+.cal-entry.valid { background-color: rgba(16, 185, 129, 0.1); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.cal-entry.error { background-color: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }

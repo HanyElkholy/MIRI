@@ -3,198 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anmeldung | AHMTIMUS ZES</title>
-    
+    <title>AHMTIMUS - Zeiterfassung</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script>
         tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'ahmtimus-dark': '#0a192f',
-                        'ahmtimus-blue': '#1e3a8a',
-                        'ahmtimus-light': '#f8f9fa'
-                    }
-                }
-            }
+            theme: { extend: { colors: { 'ahmtimus-dark': '#0a192f', 'ahmtimus-blue': '#1e3a8a', 'ahmtimus-light': '#f8f9fa' } } }
         }
     </script>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-ahmtimus-light">
+<body class="bg-ahmtimus-light font-sans">
 
     <div id="login-page" class="page min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <div class="w-full max-w-sm">
-            <img src="logo_no BG.png" 
-                 alt="AHMTIMUS Logo" 
-                 class="w-49mx-auto mb-8"
-                 onerror="this.src='https://placehold.co/200x50/000000/FFFFFF?text=AHMTIMUS'; this.onerror=null;">
-
-            <div class="bg-white p-8 rounded-lg shadow-lg w-full">
+        <div class="w-full max-w-md flex flex-col items-center">
+            <div class="logo-container mb-10 transform scale-90 sm:scale-100">
+                <svg class="logo-icon" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" />
+                    <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
+                    <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
+                </svg>
+                <div class="logo-text">
+                    <span class="brand-name">Ahmtimus</span>
+                    <div class="slogan"><span>Automation</span><span>Human</span><span>Machine</span></div>
+                </div>
+            </div>
+            <div class="bg-white p-8 rounded-lg shadow-lg w-full border-t-4 border-ahmtimus-blue">
+                <h2 class="text-2xl font-bold text-center text-ahmtimus-dark mb-6">Anmeldung</h2>
                 <form id="login-form">
                     <div class="mb-4">
-                        <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Benutzername</label>
-                        <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-ahmtimus-blue focus:border-ahmtimus-blue" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Benutzername</label>
+                        <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-ahmtimus-blue outline-none" required>
                     </div>
                     <div class="mb-6">
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Passwort</label>
-                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-ahmtimus-blue focus:border-ahmtimus-blue" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Passwort</label>
+                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-ahmtimus-blue outline-none" required>
                     </div>
-                    <p id="error-message" class="hidden text-red-600 text-sm text-center mb-4">Benutzername oder Passwort ist falsch.</p>
-                    <button type="submit" id="login-button" class="w-full bg-ahmtimus-blue text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ahmtimus-blue font-semibold">
-                        Anmelden
-                    </button>
+                    <p id="error-message" class="hidden text-red-600 text-sm text-center mb-4">Anmeldedaten ungültig.</p>
+                    <button type="submit" class="w-full bg-ahmtimus-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition font-semibold shadow-md">Anmelden</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div id="tracker-page" class="page min-h-screen bg-ahmtimus-dark text-ahmtimus-light">
+    <div id="tracker-page" class="page min-h-screen bg-ahmtimus-dark text-ahmtimus-light hidden">
         
-        <header class="bg-gray-900 shadow-md">
-            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div>
-                    <img src="logo_no BG.png" 
-                         alt="AHMTIMUS Logo" 
-                         class="h-24"
-                         onerror="this.src='https://placehold.co/150x40/FFFFFF/0a192f?text=AHMTIMUS'; this.onerror=null;">
+        <header class="bg-gray-900 shadow-md border-b border-gray-800 sticky top-0 z-40">
+            <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="logo-container logo-header">
+                    <svg class="logo-icon" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" />
+                        <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
+                        <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
+                    </svg>
+                    <div class="logo-text"><span class="brand-name">Ahmtimus</span></div>
                 </div>
-                <div class="flex space-x-4">
-                    <button id="nav-overview-button" class="nav-button bg-ahmtimus-blue text-white px-4 py-2 rounded-md text-sm font-medium">
-                        Übersicht
-                    </button>
-                    <button id="nav-live-tracker-button" class="nav-button text-gray-300 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-md text-sm font-medium">
-                        Live-Tracker
-                    </button>
-                    <button id="nav-monthly-report-button" class="nav-button text-gray-300 hover:bg-gray-700 hover:text-white px-4 py-2 rounded-md text-sm font-medium">
-                        Monatsjournal
-                    </button>
+                
+                <div class="flex space-x-2">
+                    <button id="nav-overview-button" class="nav-button active-nav"><i class="fas fa-list-alt mr-2"></i>Übersicht</button>
+                    <button id="nav-corrections-button" class="nav-button inactive-nav"><i class="fas fa-edit mr-2"></i>Anträge</button>
+                    <button id="nav-monthly-button" class="nav-button inactive-nav"><i class="fas fa-calendar-alt mr-2"></i>Kalender</button>
                 </div>
-                <div>
-                    <button id="logout-button" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm font-medium">
-                        Abmelden
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block leading-tight">
+                        <div id="user-display-name" class="text-sm font-bold text-white">Mitarbeiter</div>
+                        <div id="user-role-display" class="text-[10px] text-ahmtimus-blue font-bold uppercase tracking-wider hidden">Rolle</div>
+                    </div>
+                    <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition flex items-center shadow-md">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Abmelden
                     </button>
                 </div>
             </nav>
         </header>
 
         <div id="content-overview" class="content-section">
-             <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white mb-8">Mitarbeiter-Zeiterfassung</h1>
-                <div class="bg-gray-900 shadow-xl rounded-lg overflow-hidden">
-                    <div class="px-6 py-5">
-                        <h2 class="text-xl font-semibold text-white">Übersicht</h2>
-                    </div>
-                    <div class="grid grid-cols-5 gap-4 bg-gray-800 px-6 py-4 text-sm font-semibold text-gray-300 uppercase">
-                        <div>ID</div>
-                        <div>Name</div>
-                        <div>Datum</div>
-                        <div class="text-center">Erfasste Zeit (Stunden)</div>
-                        <div class="text-right">Aktion</div>
-                    </div>
-                    <div class="grid grid-cols-5 gap-4 items-center px-6 py-5 border-t border-gray-700">
-                        <div class="font-medium text-gray-400">102</div>
-                        <div class="font-medium text-white">Erika Mustermann</div>
-                        <div class="text-white">16.11.2025</div>
-                        <div class="text-center">
-                            <div id="time-display-container">
-                                <span id="time-display" class="text-lg text-white">8.00</span>
-                            </div>
-                            <div id="time-edit-container" class="hidden">
-                                <input type="number" id="time-input" step="0.01" class="w-24 px-2 py-1 bg-gray-700 text-white border border-gray-600 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-ahmtimus-blue">
-                                <p id="edit-error" class="hidden text-red-500 text-xs mt-1">Ungültig</p>
-                            </div>
+            <main class="container mx-auto p-6">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-6">
+                    <h1 class="text-3xl font-bold text-white border-l-4 border-ahmtimus-blue pl-4">Tagesübersicht</h1>
+                    
+                    <div class="flex gap-2 bg-gray-800 p-2 rounded-lg items-center border border-gray-700 shadow-lg">
+                        <div id="admin-filters" class="hidden">
+                             <select id="filter-user-overview" class="bg-gray-700 text-white px-3 py-1 rounded border border-gray-600 text-sm outline-none"></select>
                         </div>
-                        <div id="action-buttons" class="text-right">
-                            <button id="edit-button" class="bg-ahmtimus-blue text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium">
-                                Ändern
-                            </button>
-                            <div id="edit-buttons-container" class="hidden space-x-2">
-                                <button id="save-button" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium">
-                                    Speichern
-                                </button>
-                                <button id="cancel-button" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-sm font-medium">
-                                    Abbrechen
-                                </button>
-                            </div>
+                        <input type="date" id="filter-date" class="bg-gray-700 text-white px-3 py-1 rounded border border-gray-600 text-sm outline-none">
+                        <button id="apply-filter-btn" class="bg-ahmtimus-blue px-4 py-1 rounded text-white text-sm font-bold hover:bg-blue-800 transition">Filtern</button>
+                    </div>
+                </div>
+
+                <div id="admin-live-monitor" class="hidden mb-8">
+                    <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3 flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span> Buchungen (Live)
+                    </h3>
+                    <div id="live-users-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         </div>
+                </div>
+
+                <div class="bg-gray-900 shadow-xl rounded-lg overflow-hidden border border-gray-800">
+                    <div id="overview-header"></div>
+                    <div id="overview-list-container" class="divide-y divide-gray-800"></div>
+                </div>
+            </main>
+        </div>
+
+        <div id="content-corrections" class="content-section hidden">
+            <main class="container mx-auto p-6">
+                <h1 class="text-3xl font-bold text-white border-l-4 border-yellow-500 pl-4 mb-8">Korrekturen & Anträge</h1>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800 h-fit">
+                        <h3 class="text-xl font-semibold text-white mb-4">Korrektur beantragen</h3>
+                        <form id="correction-form">
+                            <div class="mb-3">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Datum</label>
+                                <input type="date" id="corr-date" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none" required>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Beginn</label><input type="time" id="corr-start" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none" required></div>
+                                <div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Ende</label><input type="time" id="corr-end" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none" required></div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Grund</label>
+                                <textarea id="corr-reason" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 h-24 focus:border-yellow-500 outline-none resize-none" placeholder="z.B. Vergessen zu stempeln" required></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded shadow-md transition">Antrag senden</button>
+                        </form>
+                    </div>
+                    <div class="col-span-2 bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800">
+                        <h3 class="text-xl font-semibold text-white mb-4">Status der Anträge</h3>
+                        <div id="correction-list-container" class="space-y-3"></div>
                     </div>
                 </div>
             </main>
         </div>
 
-        <div id="content-live-tracker" class="content-section">
+        <div id="content-monthly" class="content-section hidden">
             <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white mb-8">Live-Tracker Anwesenheit</h1>
-                <div class="bg-gray-900 shadow-xl rounded-lg overflow-hidden">
-                    <div class="px-6 py-5">
-                        <h2 class="text-xl font-semibold text-white">Aktuelle Buchungen</h2>
-                    </div>
-                    <div class="grid grid-cols-5 gap-4 bg-gray-800 px-6 py-4 text-sm font-semibold text-gray-300 uppercase">
-                        <div>ID</div>
-                        <div>Name</div>
-                        <div>Datum</div>
-                        <div>Uhrzeit</div>
-                        <div class="text-right">Status</div>
-                    </div>
-                    <div id="live-tracker-table-body">
-                        <div class="grid grid-cols-5 gap-4 items-center px-6 py-5 border-t border-gray-700">
-                             <div class="font-medium text-gray-400" colspan="5">Lade Live-Daten...</div>
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl font-bold text-white border-l-4 border-green-500 pl-4">Monatsjournal</h1>
+                    <button id="export-csv-btn" class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center shadow">
+                        <i class="fas fa-file-csv mr-2"></i> Export (CSV)
+                    </button>
+                </div>
+                <div class="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
+                        <div class="flex items-center space-x-4">
+                            <div id="calendar-user-select-container" class="hidden">
+                                <label class="text-gray-400 text-sm mr-2 uppercase font-bold">Name:</label>
+                                <select id="calendar-user-select" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 outline-none focus:border-green-500"></select>
+                            </div>
+                            <h2 id="calendar-user-display" class="text-xl font-bold text-white"></h2>
+                        </div>
+                        <div class="flex items-center bg-gray-800 rounded p-1 border border-gray-700">
+                            <button id="prev-month-btn" class="hover:text-white text-gray-400 px-3 py-1"><i class="fas fa-chevron-left"></i></button>
+                            <span id="calendar-month-label" class="text-lg text-white font-bold uppercase min-w-[150px] text-center tracking-wider">...</span>
+                            <button id="next-month-btn" class="hover:text-white text-gray-400 px-3 py-1"><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
-
-        <div id="content-monthly-report" class="content-section">
-            <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white mb-8">Monatsjournal</h1>
-                <div class="mb-6 flex space-x-4">
-                    <div>
-                        <label for="report-user" class="block text-sm font-medium text-gray-300 mb-2">Mitarbeiter</label>
-                        <select id="report-user" class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-ahmtimus-blue">
-                            <option>Erika Mustermann</option>
-                            <option>Max Mustermann</option>
-                        </select>
+                    <div class="calendar-wrapper select-none">
+                        <div class="grid grid-cols-7 gap-1 mb-2 text-center border-b border-gray-800 pb-2">
+                            <div class="text-gray-500 text-xs font-bold uppercase">Mo</div><div class="text-gray-500 text-xs font-bold uppercase">Di</div><div class="text-gray-500 text-xs font-bold uppercase">Mi</div><div class="text-gray-500 text-xs font-bold uppercase">Do</div><div class="text-gray-500 text-xs font-bold uppercase">Fr</div><div class="text-ahmtimus-blue text-xs font-bold uppercase">Sa</div><div class="text-ahmtimus-blue text-xs font-bold uppercase">So</div>
+                        </div>
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-1 bg-gray-900"></div>
                     </div>
-                    <div>
-                        <label for="report-month" class="block text-sm font-medium text-gray-300 mb-2">Monat</label>
-                        <input type="month" id="report-month" value="2025-11" class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-ahmtimus-blue">
-                    </div>
-                </div>
-                
-                <div class="bg-gray-900 shadow-xl rounded-lg overflow-hidden">
-                    <div class="grid grid-cols-6 gap-4 bg-gray-800 px-6 py-4 text-sm font-semibold text-gray-300 uppercase">
-                        <div>Datum</div>
-                        <div>Wochentag</div>
-                        <div class="text-center">Kommen</div>
-                        <div class="text-center">Gehen</div>
-                        <div class="text-center">Pause (Std.)</div>
-                        <div class="text-right">Gesamt (Std.)</div>
-                    </div>
-                    <div class="grid grid-cols-6 gap-4 items-center px-6 py-5 border-t border-gray-700">
-                        <div class="font-medium text-white">14.11.2025</div>
-                        <div class="text-white">Freitag</div>
-                        <div class="text-center text-white">08:02</div>
-                        <div class="text-center text-white">16:35</div>
-                        <div class="text-center text-white">0.50</div>
-                        <div class="text-right font-semibold text-lg text-white">8.05</div>
-                    </div>
-                    <div class="grid grid-cols-6 gap-4 items-center px-6 py-5 border-t border-gray-700 text-gray-500">
-                        <div class="font-medium">15.11.2025</div>
-                        <div>Samstag</div>
-                        <div class="text-center">-</div>
-                        <div class="text-center">-</div>
-                        <div class="text-center">0.00</div>
-                        <div class="text-right font-semibold text-lg">0.00</div>
+                    <div class="mt-6 grid grid-cols-3 gap-4 text-center border-t border-gray-800 pt-6">
+                        <div><div class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Soll</div><div id="cal-stat-target" class="text-2xl font-bold text-gray-300">0,00</div></div>
+                        <div><div class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Ist</div><div id="cal-stat-actual" class="text-2xl font-bold text-white">0,00</div></div>
+                        <div><div class="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Saldo</div><div id="cal-stat-balance" class="text-2xl font-bold text-white">0,00</div></div>
                     </div>
                 </div>
             </main>
         </div>
     </div>
 
-    <script src="app.js" defer></script>
+    <div id="admin-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-2xl border-t-4 border-ahmtimus-blue">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 border-b pb-2">Buchung bearbeiten</h3>
+            <form id="admin-edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="mb-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Name</label>
+                    <input type="text" id="edit-user" class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-2 text-gray-600 font-bold" readonly>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Beginn</label>
+                        <input type="time" id="edit-start" class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-ahmtimus-blue">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ende</label>
+                        <input type="time" id="edit-end" class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-ahmtimus-blue">
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Bemerkung (Änderungsgrund)</label>
+                    <input type="text" id="edit-remark" class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:ring-2 focus:ring-ahmtimus-blue" placeholder="z.B. Nachtrag">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="close-modal-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-bold text-sm">Abbrechen</button>
+                    <button type="submit" class="px-4 py-2 bg-ahmtimus-blue text-white rounded hover:bg-blue-800 font-bold text-sm shadow">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
 </body>
 </html>

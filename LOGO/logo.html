@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHMTIMUS - Transparent</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;700&display=swap');
+
+        /* VORSCHAU-HINTERGRUND:
+           Der Body hat hier nur ein Muster, damit du die Transparenz siehst.
+           Das ist NICHT Teil des Logos.
+        */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Exo 2', sans-serif;
+            
+            /* Schachbrett-Muster (wie in Photoshop) um Transparenz zu zeigen */
+            background-color: #f0f0f0;
+            background-image: 
+                linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6), 
+                linear-gradient(45deg, #e6e6e6 25%, transparent 25%, transparent 75%, #e6e6e6 75%, #e6e6e6);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        /* --- CSS für deine Website --- */
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            /* WICHTIG: Kein background-color hier setzen! */
+        }
+
+        /* --- Icon Styling --- */
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            /* Nutzt die Textfarbe für die Füllung - super flexibel */
+            color: #004e82; 
+        }
+
+        /* --- Text Container --- */
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* --- Marke --- */
+        .brand-name {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #004e82;
+            line-height: 0.9;
+            letter-spacing: 0.05em; 
+            text-transform: uppercase;
+        }
+
+        /* --- Slogan --- */
+        .slogan {
+            font-size: 1rem;
+            color: #004e82; 
+            font-weight: 300; 
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em; 
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ANFANG: Kopiere diesen Teil in deine Website -->
+    <div class="logo-container">
+        <svg class="logo-icon" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <!-- Segment 1: Oben -->
+            <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" opacity="1" />
+            <!-- Segment 2: Rechts unten -->
+            <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
+            <!-- Segment 3: Links unten -->
+            <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
+        </svg>
+
+        <div class="logo-text">
+            <span class="brand-name">Ahmtimus</span>
+            <div class="slogan">
+                <span>Automation</span>
+                <span>Human</span>
+                <span>Machine</span>
+            </div>
+        </div>
+    </div>
+    <!-- ENDE: Kopiere bis hier -->
+
+</body>
+</html>
