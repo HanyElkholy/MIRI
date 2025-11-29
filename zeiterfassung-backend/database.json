@@ -176,6 +176,51 @@
       "actor": "Administrator",
       "action": "Login",
       "details": "Erfolgreich"
+    },
+    {
+      "id": 1764449080946,
+      "timestamp": "2025-11-29T20:44:40.946Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "module": "System",
+      "oldValue": "-",
+      "newValue": "Erfolgreich"
+    },
+    {
+      "id": 1764449664482,
+      "timestamp": "2025-11-29T20:54:24.482Z",
+      "actor": "Max Muster",
+      "action": "Login",
+      "module": "System",
+      "oldValue": "-",
+      "newValue": "Erfolgreich"
+    },
+    {
+      "id": 1764450025846,
+      "timestamp": "2025-11-29T21:00:25.846Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "module": "System",
+      "oldValue": "-",
+      "newValue": "Erfolgreich"
+    },
+    {
+      "id": 1764450183130,
+      "timestamp": "2025-11-29T21:03:03.130Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "module": "System",
+      "oldValue": "-",
+      "newValue": "Erfolgreich"
+    },
+    {
+      "id": 1764457343846,
+      "timestamp": "2025-11-29T23:02:23.846Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "module": "System",
+      "oldValue": "-",
+      "newValue": "Erfolgreich"
     }
   ]
 }
