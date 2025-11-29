@@ -1,48 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- GLOBALE VARIABLEN ---
     let currentUser = null;
     let usersList = [];
     let bookingsList = [];
     let requestsList = [];
-    let currentCalDate = new Date();
-    let selectedCalUserId = null;
-
-    // API-URL anpassen, falls nötig
+    
+    // API CONFIG
     const API_URL = 'http://localhost:3001/api/v1'; 
 
-    // --- DOM ELEMENTE ---
-    const loginPage = document.getElementById('login-page');
-    const trackerPage = document.getElementById('tracker-page');
-    const loginForm = document.getElementById('login-form');
-    const userRoleDisplay = document.getElementById('user-role-display');
-
-    // --- API FUNKTIONEN ---
     async function apiFetch(endpoint, method = 'GET', body = null, isFormData = false) {
         const headers = {};
         if (currentUser && currentUser.token) headers['Authorization'] = `Bearer ${currentUser.token}`;
-        
-        // Bei FormData darf Content-Type NICHT manuell gesetzt werden (Browser übernimmt Boundary)
         if (!isFormData) headers['Content-Type'] = 'application/json';
-
         const config = { method, headers };
         if (body) config.body = isFormData ? body : JSON.stringify(body);
-
         try {
             const res = await fetch(`${API_URL}${endpoint}`, config);
-            if (!res.ok) { 
-                if(res.status===401) logout(); 
-                const errJson = await res.json();
-                console.error("API Fehler:", errJson);
-                // Optional: alert(`Fehler: ${errJson.message}`);
-                return null; 
-            }
+            if (!res.ok) { if(res.status===401) logout(); return null; }
             return await res.json();
         } catch (err) { console.error(err); return null; }
     }
 
-    // --- LOGIN ---
-    loginForm.addEventListener('submit', async (e) => {
+    // LOGIN
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
@@ -51,212 +31,159 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.status === "success") {
             currentUser = { ...data.user, token: data.token };
             document.getElementById('user-display-name').textContent = currentUser.displayName;
+            document.getElementById('client-name-display').textContent = currentUser.clientName || "McKensy"; 
             
+            // UI SETUP
             if (currentUser.role === 'admin') {
-                userRoleDisplay.textContent = 'Administrator';
-                userRoleDisplay.classList.remove('hidden');
                 document.getElementById('nav-live-button').classList.remove('hidden');
-                document.getElementById('nav-history-button').classList.remove('hidden');
+                document.getElementById('user-live-terminal').classList.add('hidden');
+                document.getElementById('admin-live-dashboard').classList.remove('hidden');
+                document.getElementById('nav-group-admin').classList.remove('hidden');
                 usersList = await apiFetch('/users');
             } else {
-                userRoleDisplay.classList.add('hidden');
                 document.getElementById('nav-live-button').classList.add('hidden');
-                document.getElementById('nav-history-button').classList.add('hidden');
-                usersList = [{ id: currentUser.id, displayName: currentUser.displayName, dailyTarget: currentUser.dailyTarget }];
+                document.getElementById('user-live-terminal').classList.remove('hidden');
+                document.getElementById('admin-live-dashboard').classList.add('hidden');
+                document.getElementById('nav-group-admin').classList.add('hidden');
+                usersList = [{ id: currentUser.id, displayName: currentUser.displayName, dailyTarget: currentUser.dailyTarget, vacationDays: currentUser.vacationDays }];
             }
-            loginPage.classList.add('hidden');
-            trackerPage.classList.remove('hidden');
+            
+            initAllDropdowns();
+
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('tracker-page').classList.remove('hidden');
             switchSection('overview');
         } else {
             document.getElementById('error-message').classList.remove('hidden');
         }
     });
 
-    document.getElementById('logout-button').addEventListener('click', logout);
+    document.getElementById('logout-button').addEventListener('click', () => location.reload());
     function logout() { currentUser = null; location.reload(); }
+
+    // --- CENTRAL DROPDOWN INIT ---
+    function initAllDropdowns() {
+        const selects = [
+            'overview-user-select', 
+            'req-filter-user', 
+            'request-target-user', 
+            'cal-filter-user', 
+            'account-user-select'
+        ];
+
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.innerHTML = '<option value="" disabled selected>Bitte auswählen...</option>';
+            usersList.filter(u => u.role !== 'admin').forEach(u => {
+                el.add(new Option(u.displayName, u.id));
+            });
+        });
+
+        document.getElementById('cal-filter-month').value = new Date().getMonth();
+        document.getElementById('cal-filter-year').value = new Date().getFullYear();
+    }
 
     // --- NAVIGATION ---
     function switchSection(name) {
-        // Alle Bereiche ausblenden
         document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
-        // Alle Nav-Buttons zurücksetzen
-        document.querySelectorAll('.nav-button').forEach(el => {
-            el.classList.remove('active-nav');
-            el.classList.add('inactive-nav');
-        });
-        
-        // Gewählten Bereich anzeigen
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.dropdown-link').forEach(el => el.classList.remove('bg-ahmtimus-blue', 'text-white'));
+
         const contentEl = document.getElementById(`content-${name}`);
         if(contentEl) contentEl.classList.remove('hidden');
         
-        // Button aktivieren
-        const btn = document.getElementById(`nav-${name}-button`);
-        if(btn) {
-            btn.classList.remove('inactive-nav');
-            btn.classList.add('active-nav');
-        }
-        
+        if(name === 'overview') document.getElementById('nav-overview-button').classList.add('active');
+        if(name === 'live') document.getElementById('nav-live-button').classList.add('active');
+        if(name === 'monthly') document.getElementById('nav-monthly-button').classList.add('bg-ahmtimus-blue', 'text-white');
+        if(name === 'requests') document.getElementById('nav-requests-button').classList.add('bg-ahmtimus-blue', 'text-white');
+        if(name === 'account') document.getElementById('nav-account-button').classList.add('bg-ahmtimus-blue', 'text-white');
+        if(name === 'history') document.getElementById('nav-history-button').classList.add('text-white');
+
         refreshData(name);
     }
+    const navMap = { 'overview':'overview', 'live':'live', 'requests':'requests', 'monthly':'monthly', 'account':'account', 'history':'history' };
+    Object.keys(navMap).forEach(k => {
+        const btn = document.getElementById(`nav-${k}-button`);
+        if(btn) btn.addEventListener('click', () => switchSection(navMap[k]));
+    });
 
     async function refreshData(name) {
         bookingsList = await apiFetch('/bookings') || [];
         requestsList = await apiFetch('/requests') || [];
-        
         if (name === 'overview') loadOverview();
         if (name === 'live') loadLiveMonitor();
         if (name === 'requests') loadRequests();
         if (name === 'monthly') loadMonthly();
         if (name === 'history' && currentUser.role === 'admin') loadHistory();
+        if (name === 'account') loadTimeAccount();
     }
 
-    ['overview','live','requests','monthly','history'].forEach(n => {
-        const btn = document.getElementById(`nav-${n}-button`);
-        if(btn) btn.addEventListener('click', () => switchSection(n));
-    });
-
-    // --- HILFSFUNKTIONEN ---
-    function getUserName(id) { const u = usersList.find(u => u.id === id); return u ? u.displayName : `ID ${id}`; }
-    
-    // Zeitumrechnung HH:MM -> Dezimal
+    // HELPER
+    function getUserName(id) { const u = usersList.find(u => u.id === id); return u ? u.displayName : `Pers.-Nr. ${id}`; }
     function timeToDec(t) { if(!t) return 0; const [h,m] = t.split(':').map(Number); return h + m/60; }
-    
-    // Zeitumrechnung Dezimal -> HH:MM
-    function decToTime(d) { const h = Math.floor(d); const m = Math.round((d-h)*60); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
-    
-    // Automatische Pause nach ArbZG
+    function decToTime(d) { const h = Math.floor(Math.abs(d)); const m = Math.round((Math.abs(d)-h)*60); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
     function calcPause(brutto) { return brutto > 9 ? 0.75 : (brutto > 6 ? 0.5 : 0); }
-    
     function getUserTarget(uid) { const u = usersList.find(x=>x.id===uid); return u ? (u.dailyTarget||8.0) : 8.0; }
 
-    // --- EXPORT FUNKTION (CSV / Excel) ---
-    window.exportToCSV = function() {
-        // UTF-8 BOM für korrekte Excel-Darstellung von Umlauten
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-        csvContent += "ID;Mitarbeiter;Datum;Beginn;Ende;Pause;Soll;Ist;Netto-Zeit;Saldo;Bemerkung\n";
+    // --- FUNCTIONS ---
 
-        const year = currentCalDate.getFullYear();
-        const month = currentCalDate.getMonth() + 1;
-        const prefix = `${year}-${String(month).padStart(2,'0')}`;
-
-        // Daten filtern: Nur aktueller Monat und nur ausgewählter User
-        let data = bookingsList.filter(b => b.date.startsWith(prefix));
-        if (selectedCalUserId) data = data.filter(b => b.userId === selectedCalUserId);
-
-        data.forEach(b => {
-            const target = getUserTarget(b.userId);
-            const brutto = timeToDec(b.end) - timeToDec(b.start);
-            const pause = b.end ? calcPause(brutto) : 0;
-            const erfasst = Math.max(0, brutto - pause);
-            const saldo = b.end ? (erfasst - target) : 0;
-            
-            // CSV Zeile erstellen
-            const row = [
-                b.userId, 
-                getUserName(b.userId), 
-                b.date.split('-').reverse().join('.'), // Datum deutsch formatieren
-                b.start, 
-                b.end || '',
-                decToTime(pause), 
-                decToTime(target), 
-                decToTime(brutto), 
-                decToTime(erfasst),
-                decToTime(saldo), 
-                b.remarks || ''
-            ].join(";");
-            csvContent += row + "\n";
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Zeiterfassung_${prefix}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-    // Event Listener für Export Button
-    const expBtn = document.getElementById('export-csv-btn');
-    if(expBtn) expBtn.addEventListener('click', window.exportToCSV);
-
-
-    // --- 1. ANWESENHEIT (LIVE) ---
+    // 1. LIVE
+    window.manualStamp = async (action) => {
+        const res = await apiFetch('/stamp-manual', 'POST', { action });
+        if(res && res.status === 'success') { refreshData('live'); }
+    };
     function loadLiveMonitor() {
-        const container = document.getElementById('live-users-grid');
-        container.innerHTML = '';
         const today = new Date().toISOString().split('T')[0];
-        const active = bookingsList.filter(b => b.date === today && b.start && !b.end);
-
-        if (active.length === 0) {
-            container.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Kein Mitarbeiter aktuell eingestempelt.</div>';
+        if(currentUser.role !== 'admin') {
+            const myLast = bookingsList.filter(b => b.userId === currentUser.id && b.date === today).pop();
+            const statEl = document.getElementById('status-display');
+            if(myLast && !myLast.end) {
+                statEl.textContent = "Anwesend"; statEl.className = "text-5xl font-bold text-green-400 mb-3";
+                document.getElementById('last-stamp-time').textContent = `Seit ${myLast.start}`;
+            } else {
+                statEl.textContent = "Abwesend"; statEl.className = "text-5xl font-bold text-gray-500 mb-3";
+            }
             return;
         }
-
+        const container = document.getElementById('live-users-grid');
+        container.innerHTML = '';
+        const active = bookingsList.filter(b => b.date === today && b.start && !b.end);
+        if (active.length === 0) { container.innerHTML = '<div class="col-span-full text-center text-gray-500 italic">Keine aktiven Mitarbeiter.</div>'; return; }
         active.forEach(b => {
-            const div = document.createElement('div');
-            div.className = "bg-gray-800 border-l-4 border-green-500 p-4 rounded shadow flex items-center justify-between";
-            div.innerHTML = `
-                <div>
-                    <div class="font-bold text-white text-lg">${getUserName(b.userId)}</div>
-                    <div class="text-green-400 font-mono text-sm mt-1"><i class="fas fa-clock mr-1"></i> ${b.start} Uhr</div>
-                </div>
-                <div class="h-3 w-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-            `;
-            container.appendChild(div);
+            container.innerHTML += `<div class="bg-ahmtimus-card border-l-4 border-green-500 p-4 rounded shadow flex items-center justify-between"><div><div class="font-bold text-white text-lg">${getUserName(b.userId)}</div><div class="text-green-400 font-mono text-sm mt-1">Seit ${b.start} Uhr</div></div><div class="h-3 w-3 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div></div>`;
         });
     }
 
-    // --- 2. TAGESÜBERSICHT (JOURNAL) ---
+    // 2. OVERVIEW (JOURNAL) - MIT BLUE HOVER & EDIT ACTION
     function loadOverview() {
         const isAdmin = currentUser.role === 'admin';
-        const filterUser = document.getElementById('filter-user-overview');
+        const filterUser = document.getElementById('overview-user-select');
         const filterDate = document.getElementById('filter-date');
         
-        // Filter initialisieren (OHNE ADMIN in der Liste)
-        if (isAdmin && filterUser.options.length === 0) {
-            filterUser.innerHTML = '<option value="">Alle Mitarbeiter</option>';
-            usersList.filter(u => u.role !== 'admin').forEach(u => filterUser.add(new Option(u.displayName, u.id)));
-            filterUser.onchange = loadOverview;
-            document.getElementById('admin-filters').classList.remove('hidden');
-        }
+        if(isAdmin) document.getElementById('admin-filters-overview').classList.remove('hidden');
         document.getElementById('apply-filter-btn').onclick = loadOverview;
 
         let data = bookingsList;
-        // Admin-Filter Logik
         if (isAdmin && filterUser.value) data = data.filter(b => b.userId == filterUser.value);
+        else if (!isAdmin) data = data.filter(b => b.userId === currentUser.id);
+
         if (filterDate.value) data = data.filter(b => b.date === filterDate.value);
-        
-        // Sortierung: Neueste zuerst
         data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
         const container = document.getElementById('overview-list-container');
         const header = document.getElementById('overview-header');
         container.innerHTML = '';
 
-        // --- GRID LAYOUT DEFINITION ---
-        // Personal-ID: 0.8fr | Name: 2fr | Datum: 1fr | Zeiten: je 0.7fr | Netto: 0.9fr | Info: 2.5fr | Aktion: 50px
-        const gridClass = isAdmin 
-            ? 'grid-cols-[0.8fr_2fr_1fr_0.7fr_0.7fr_0.6fr_0.6fr_0.6fr_0.9fr_2.5fr_50px]' 
-            : 'grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_2fr]';
+        const gridClass = isAdmin ? 
+            'grid-cols-[0.5fr_1.5fr_1fr_0.7fr_0.7fr_0.6fr_0.6fr_0.6fr_0.8fr_2fr_0.5fr]' : 
+            'grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_2fr]';
         
-        let headHTML = '';
-        if(isAdmin) headHTML += `<div class="text-gray-500">Personal-ID</div><div>Mitarbeiter</div>`;
+        let headHTML = isAdmin ? `<div>Pers.-Nr.</div><div>Name</div>` : ``;
+        headHTML += `<div>Datum</div><div class="text-center">Start</div><div class="text-center">Ende</div><div class="text-center text-gray-500">Pause</div><div class="text-center text-gray-500">Soll</div><div class="text-center text-gray-500">Ist</div><div class="text-center font-bold text-blue-400">Netto</div>${isAdmin ? '' : '<div class="text-center">Saldo</div>'} <div>Bemerkung</div>`;
+        if(isAdmin) headHTML += `<div class="text-center text-white">Aktion</div>`;
         
-        headHTML += `
-            <div>Datum</div>
-            <div class="text-center">Start</div>
-            <div class="text-center">Ende</div>
-            <div class="text-center text-gray-500">Pause</div>
-            <div class="text-center text-gray-500">Soll</div>
-            <div class="text-center text-gray-500">Ist</div>
-            <div class="text-center font-bold text-blue-300">Netto-Zeit</div>
-            ${isAdmin ? '' : '<div class="text-center">Saldo</div>'} 
-            <div>Bemerkung</div>
-        `;
-        
-        if(isAdmin) headHTML += `<div></div>`;
-
-        header.className = `grid ${gridClass} gap-3 px-4 py-3 bg-gray-800 text-xs font-bold text-gray-400 uppercase border-b border-gray-700 items-center`;
+        header.className = `grid ${gridClass} gap-3 px-4 py-3 bg-ahmtimus-dark text-xs font-bold text-gray-500 uppercase border-b border-ahmtimus items-center`;
         header.innerHTML = headHTML;
 
         if(data.length === 0) { container.innerHTML = '<div class="p-6 text-center text-gray-500 italic">Keine Einträge gefunden.</div>'; return; }
@@ -268,64 +195,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const net = Math.max(0, rawDiff - pause);
             const saldo = b.end ? (net - target) : 0;
             
-            // Audit/Historien-Icon
-            let infoIcon = '';
-            if(b.history && b.history.length > 0) {
-                const last = b.history[b.history.length-1];
-                infoIcon = `<i class="fas fa-info-circle text-orange-400 ml-2 cursor-help" title="Zuletzt geändert: ${last.changedBy} (${last.type})"></i>`;
-            }
-
-            // Status-Badges
             let typeBadge = '';
-            if (b.type === 'Urlaub') typeBadge = '<span class="text-[10px] bg-green-900 text-green-300 px-1 rounded mr-1 font-bold">URLAUB</span>';
-            if (b.type === 'Krank') typeBadge = '<span class="text-[10px] bg-red-900 text-red-300 px-1 rounded mr-1 font-bold">KRANK</span>';
+            if (b.type === 'Urlaub') typeBadge = '<span class="text-[10px] bg-blue-900 text-blue-300 px-1 rounded mr-1">URLAUB</span>';
+            if (b.type === 'Krank') typeBadge = '<span class="text-[10px] bg-red-900 text-red-300 px-1 rounded mr-1">KRANK</span>';
 
             const div = document.createElement('div');
-            div.className = `grid ${gridClass} gap-3 px-4 py-3 items-center hover:bg-gray-800/50 text-sm border-b border-gray-800 transition`;
+            // HIER: 'hover-blue' statt hover:bg-ahmtimus-dark
+            div.className = `grid ${gridClass} gap-3 px-4 py-3 items-center hover-blue text-sm transition group border-b border-ahmtimus last:border-0 text-gray-300`;
             
-            let html = '';
-            // Zeile aufbauen
-            if(isAdmin) html += `<div class="font-mono text-xs text-gray-500 tracking-wider">${b.userId}</div><div class="font-bold text-white truncate">${getUserName(b.userId)}</div>`;
-            
-            html += `
-                <div class="text-gray-300 font-mono">${b.date.split('-').reverse().join('.')}</div>
-                <div class="text-center font-mono text-gray-300 bg-gray-700/30 rounded py-0.5">${b.start}</div>
-                <div class="text-center font-mono text-gray-300 bg-gray-700/30 rounded py-0.5">${b.end || '--:--'}</div>
-                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(pause)}</div>
-                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(target)}</div>
+            let html = isAdmin ? `<div class="font-mono text-xs text-gray-600">${b.userId}</div><div class="font-bold text-white truncate">${getUserName(b.userId)}</div>` : ``;
+            html += `<div class="text-gray-400 font-mono">${b.date.split('-').reverse().join('.')}</div>
+                <div class="text-center font-mono">${b.start}</div><div class="text-center font-mono">${b.end || '--:--'}</div>
+                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(pause)}</div><div class="text-center text-gray-500 text-xs font-mono">${decToTime(target)}</div>
                 <div class="text-center text-gray-500 text-xs font-mono">${b.end ? decToTime(rawDiff) : '-'}</div>
-                <div class="text-center font-bold text-blue-300 font-mono text-base">${b.end ? decToTime(net) : '...'}</div>
-                ${isAdmin ? '' : `<div class="text-center font-mono font-bold ${saldo >= 0 ? 'text-green-400' : 'text-red-400'}">${b.end ? (saldo>0?'+':'')+decToTime(saldo) : '-'}</div>`}
-                <div class="truncate text-gray-400 text-xs">${typeBadge}${b.remarks||''} ${infoIcon}</div>
-            `;
-            // Bearbeiten-Button für Admin
-            if(isAdmin) html += `<div class="text-right"><button onclick="window.openEdit(${b.id})" class="text-blue-500 hover:text-blue-400 transition transform hover:scale-110" title="Eintrag bearbeiten"><i class="fas fa-pen"></i></button></div>`;
+                <div class="text-center font-bold text-blue-400 font-mono text-base">${b.end ? decToTime(net) : '...'}</div>
+                ${isAdmin ? '' : `<div class="text-center font-mono font-bold ${saldo >= 0 ? 'text-green-500' : 'text-red-500'}">${b.end ? (saldo>0?'+':'')+decToTime(saldo) : '-'}</div>`}
+                <div class="truncate text-gray-500 text-xs">${typeBadge}${b.remarks||''}</div>`;
+            
+            // Edit Button für Admin
+            if(isAdmin) html += `<div class="text-center"><button onclick="window.openEdit(${b.id})" class="text-gray-500 hover:text-white transition bg-[#0d1b33] h-8 w-8 rounded-full border border-gray-700 hover:border-blue-500 shadow-sm"><i class="fas fa-pen text-xs"></i></button></div>`;
             
             div.innerHTML = html;
             container.appendChild(div);
         });
     }
 
-    // --- 3. ANTRAGSWESEN ---
+    // 3. REQUESTS
+    window.handleRequest = async (id, status) => {
+        if(!confirm(`Status ändern?`)) return;
+        const res = await apiFetch(`/requests/${id}`, 'PUT', { status });
+        if(res && res.status === 'success') refreshData('requests');
+    };
     function loadRequests() {
         const isAdmin = currentUser.role === 'admin';
         const listContainer = document.getElementById('request-list-container');
-        const targetSelect = document.getElementById('request-target-user');
         
         if (isAdmin) {
             document.getElementById('admin-request-filter-area').classList.remove('hidden');
+            document.getElementById('admin-request-filter-area').classList.add('flex');
             document.getElementById('request-target-user-container').classList.remove('hidden');
-            
-            // Fülle "Für Mitarbeiter"-Dropdown (OHNE ADMIN)
-            if(targetSelect.options.length <= 1) {
-                usersList.filter(u => u.role !== 'admin').forEach(u => targetSelect.add(new Option(u.displayName, u.id)));
-            }
-            
-            // Filter Selector füllen (OHNE ADMIN)
-            const fUser = document.getElementById('req-filter-user');
-            if(fUser.options.length <= 1) {
-                usersList.filter(u => u.role !== 'admin').forEach(u => fUser.add(new Option(u.displayName, u.id)));
-            }
             document.getElementById('req-filter-btn').onclick = loadRequests;
         }
 
@@ -336,208 +244,216 @@ document.addEventListener('DOMContentLoaded', () => {
             if(fUserId) data = data.filter(r => r.userId == fUserId);
             if(fStatus) data = data.filter(r => r.status === fStatus);
         }
-        
-        // Sortierung: Ausstehende zuerst, dann ID absteigend
-        data.sort((a,b) => {
-            if(a.status === 'pending' && b.status !== 'pending') return -1;
-            if(a.status !== 'pending' && b.status === 'pending') return 1;
-            return b.id - a.id;
-        });
+        data.sort((a,b) => b.id - a.id);
 
         listContainer.innerHTML = '';
-        if(data.length === 0) { listContainer.innerHTML = '<p class="text-gray-500 italic">Keine Anträge gefunden.</p>'; return; }
+        if(data.length === 0) { listContainer.innerHTML = '<p class="text-gray-500 italic p-4">Keine Anträge.</p>'; return; }
 
         data.forEach(req => {
             const item = document.createElement('div');
-            item.className = "bg-gray-800 p-4 rounded border border-gray-700 flex flex-col gap-2 relative group hover:border-gray-600 transition";
-            
-            // Status-Badge (Übersetzung ins Deutsche)
-            let statusBadge = '';
-            if(req.status === 'pending') statusBadge = '<span class="bg-yellow-600/20 text-yellow-500 px-2 py-1 rounded text-xs font-bold border border-yellow-600/50">Ausstehend</span>';
-            if(req.status === 'approved') statusBadge = '<span class="bg-green-600/20 text-green-500 px-2 py-1 rounded text-xs font-bold border border-green-600/50">Genehmigt</span>';
-            if(req.status === 'rejected') statusBadge = '<span class="bg-red-600/20 text-red-500 px-2 py-1 rounded text-xs font-bold border border-red-600/50">Abgelehnt</span>';
-
-            let typeColor = req.type === 'Urlaub' ? 'text-green-300' : (req.type === 'Krank' ? 'text-red-300' : 'text-blue-300');
-            let attachmentHtml = req.attachment ? `<span class="text-xs text-gray-400 ml-2"><i class="fas fa-paperclip"></i> Anhang vorhanden</span>` : '';
-
-            // Admin-Buttons
-            let buttons = '';
-            if(isAdmin && req.status === 'pending') {
-                buttons = `
-                <div class="mt-2 flex gap-2 justify-end border-t border-gray-700 pt-2">
-                    <button onclick="window.handleRequest(${req.id}, 'approved')" class="bg-green-700 hover:bg-green-600 text-white px-3 py-1 rounded text-xs font-bold shadow">Genehmigen</button>
-                    <button onclick="window.handleRequest(${req.id}, 'rejected')" class="bg-red-700 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-bold shadow">Ablehnen</button>
-                </div>`;
-            }
-
-            item.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="text-sm font-bold text-white flex items-center gap-2">
-                            ${getUserName(req.userId)} 
-                            <span class="font-normal text-gray-500 text-xs">| ${req.date.split('-').reverse().join('.')}</span>
-                        </div>
-                        <div class="text-xs font-bold uppercase mt-1 ${typeColor}">${req.type} ${attachmentHtml}</div>
-                    </div>
-                    <div>${statusBadge}</div>
-                </div>
-                <div class="text-sm text-gray-300 bg-gray-900/50 p-2 rounded italic border-l-2 border-gray-600 mt-1">
-                    "${req.reason}"
-                    ${(req.newStart && req.newEnd) ? `<div class="not-italic text-xs text-gray-500 mt-1 font-mono">Zeitraum: ${req.newStart} - ${req.newEnd}</div>` : ''}
-                </div>
-                ${buttons}
-            `;
+            item.className = "bg-ahmtimus-dark p-3 rounded border border-ahmtimus mb-2 hover:border-blue-500 transition";
+            let statusBadge = req.status === 'pending' ? '<span class="text-yellow-500 font-bold text-xs">OFFEN</span>' : (req.status === 'approved' ? '<span class="text-green-500 font-bold text-xs">OK</span>' : '<span class="text-red-500 font-bold text-xs">ABGELEHNT</span>');
+            let buttons = (isAdmin && req.status === 'pending') ? `<div class="mt-2 flex gap-2 justify-end border-t border-ahmtimus pt-2"><button onclick="window.handleRequest(${req.id}, 'approved')" class="text-xs bg-green-700 text-white px-2 py-1 rounded">OK</button><button onclick="window.handleRequest(${req.id}, 'rejected')" class="text-xs bg-red-700 text-white px-2 py-1 rounded">NEIN</button></div>` : '';
+            item.innerHTML = `<div class="flex justify-between items-center mb-1"><div class="text-sm font-bold text-white">${getUserName(req.userId)}</div>${statusBadge}</div>
+                <div class="text-xs text-blue-300 font-bold mb-1">${req.type} <span class="text-gray-500 font-normal">| ${req.date}</span></div>
+                <div class="text-xs text-gray-400 italic">"${req.reason}"</div>${buttons}`;
             listContainer.appendChild(item);
         });
     }
-
-    // Formular Handler für neuen Antrag
     document.getElementById('request-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const res = await apiFetch('/requests', 'POST', formData, true); 
-        if (res && res.status === 'success') {
-            alert('Antrag erfolgreich erstellt.');
-            e.target.reset();
-            refreshData('requests');
-        }
+        if (res && res.status === 'success') { alert('Gesendet.'); e.target.reset(); refreshData('requests'); }
     });
 
-    // Antrag bearbeiten (Genehmigen/Ablehnen)
-    window.handleRequest = async (id, status) => {
-        const actionText = status === 'approved' ? 'genehmigen' : 'ablehnen';
-        if(!confirm(`Möchten Sie diesen Antrag wirklich ${actionText}?`)) return;
-        
-        const res = await apiFetch(`/requests/${id}`, 'PUT', { status });
-        if(res && res.status === 'success') refreshData('requests');
-    };
-
-    // --- 4. KALENDER (Monatsjournal) ---
-    function loadMonthly() {
+    // 4. MONTHLY CALENDAR - MIT BLUE HOVER
+    window.loadMonthly = function() {
         const grid = document.getElementById('calendar-grid');
-        const monthLabel = document.getElementById('calendar-month-label');
-        const userSelectContainer = document.getElementById('calendar-user-select-container');
-        const userSelect = document.getElementById('calendar-user-select');
-        const userDisplay = document.getElementById('calendar-user-display');
+        const calUserContainer = document.getElementById('cal-user-container');
+        const calFilterUser = document.getElementById('cal-filter-user');
         
-        grid.innerHTML = '';
+        const selectedMonth = parseInt(document.getElementById('cal-filter-month').value);
+        const selectedYear = parseInt(document.getElementById('cal-filter-year').value);
+        
+        let targetUserId = currentUser.id;
         
         if (currentUser.role === 'admin') {
-            userSelectContainer.classList.remove('hidden'); userDisplay.classList.add('hidden');
-            if (userSelect.options.length === 0) {
-                // Nur Mitarbeiter laden (ohne Admin)
-                usersList.filter(u => u.role !== 'admin').forEach(u => userSelect.add(new Option(u.displayName, u.id)));
-                
-                // Falls noch keiner gewählt, nimm den ersten
-                if(!selectedCalUserId && usersList.length > 0) {
-                    const firstUser = usersList.find(u => u.role !== 'admin');
-                    if(firstUser) {
-                        selectedCalUserId = firstUser.id;
-                        userSelect.value = firstUser.id;
-                    }
-                }
-                userSelect.onchange = () => { selectedCalUserId = parseInt(userSelect.value); loadMonthly(); };
+            calUserContainer.classList.remove('hidden');
+            if (calFilterUser.value) {
+                targetUserId = parseInt(calFilterUser.value);
+            } else {
+                grid.innerHTML = '<div class="col-span-7 text-center py-10 text-gray-500">Bitte Mitarbeiter wählen & Filtern klicken.</div>';
+                return;
             }
         } else {
-            userSelectContainer.classList.add('hidden'); userDisplay.classList.remove('hidden');
-            userDisplay.textContent = currentUser.displayName; selectedCalUserId = currentUser.id;
+            calUserContainer.classList.add('hidden');
         }
 
-        const year = currentCalDate.getFullYear();
-        const month = currentCalDate.getMonth();
-        monthLabel.textContent = `${new Date(year, month).toLocaleString('de-DE', { month: 'long' })} ${year}`;
+        grid.innerHTML = '';
+        const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+        let firstDayIndex = new Date(selectedYear, selectedMonth, 1).getDay(); firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
 
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        let firstDayIndex = new Date(year, month, 1).getDay(); firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
-
-        ['Mo','Di','Mi','Do','Fr','Sa','So'].forEach((d,i) => {
-             const h = document.createElement('div'); h.className = `text-center text-xs font-bold uppercase ${i>4?'text-ahmtimus-blue':'text-gray-500'} mb-2`; h.innerText = d;
+        ['Mo','Di','Mi','Do','Fr','Sa','So'].forEach(d => {
+             const h = document.createElement('div'); h.className = `text-center text-xs font-bold text-gray-500 py-2 bg-ahmtimus-dark`; h.innerText = d;
              grid.appendChild(h);
         });
-
-        // Leere Tage am Anfang
-        for (let i = 0; i < firstDayIndex; i++) grid.appendChild(Object.assign(document.createElement('div'), {className: 'min-h-[100px]'}));
+        for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
 
         let sumTarget = 0, sumActual = 0;
-        const target = getUserTarget(selectedCalUserId);
+        const target = getUserTarget(targetUserId);
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const cell = document.createElement('div');
-            const isWeekend = (new Date(year, month, day).getDay() % 6 === 0);
+            const isWeekend = (new Date(selectedYear, selectedMonth, day).getDay() % 6 === 0);
             
-            cell.className = `min-h-[100px] border border-gray-800 p-2 relative flex flex-col ${isWeekend ? 'bg-[#0d121d]' : 'bg-[#111827] hover:bg-gray-800 transition'}`;
-            cell.innerHTML = `<div class="text-right text-sm font-bold ${isWeekend ? 'text-blue-500' : 'text-gray-600'}">${day}</div>`;
+            // HIER: hover:bg-blue-900/30 statt ahmtimus-dark
+            cell.className = `min-h-[80px] p-1 border-t border-l border-ahmtimus relative flex flex-col ${isWeekend ? 'bg-[#050f1e]' : 'bg-ahmtimus-card hover:bg-blue-900/30'}`;
+            cell.innerHTML = `<div class="text-right text-xs font-bold ${isWeekend ? 'text-blue-500' : 'text-gray-600'}">${day}</div>`;
 
-            const b = bookingsList.find(x => x.date === dateStr && x.userId === selectedCalUserId);
-            
+            const b = bookingsList.find(x => x.date === dateStr && x.userId === targetUserId);
             if (b) {
                 const diff = timeToDec(b.end) - timeToDec(b.start);
                 const pause = b.end ? calcPause(diff) : 0;
                 const net = Math.max(0, diff - pause);
-                
                 if (!isWeekend) sumTarget += target;
                 sumActual += net;
-
-                let colorClass = 'text-green-400 border-green-500/30 bg-green-500/10';
-                if(b.type === 'Krank') colorClass = 'text-red-400 border-red-500/30 bg-red-500/10';
-                if(b.type === 'Urlaub') colorClass = 'text-blue-400 border-blue-500/30 bg-blue-500/10';
-                if(!b.end) colorClass = 'text-yellow-500 border-yellow-500/30 animate-pulse';
-
-                // Deutsche Labels im Kalender
+                let color = b.type === 'Krank' ? 'text-red-400' : (b.type === 'Urlaub' ? 'text-blue-400' : 'text-green-400');
                 let label = b.end ? decToTime(net)+'h' : 'Läuft';
                 if(b.type === 'Krank') label = 'Krank';
                 if(b.type === 'Urlaub') label = 'Urlaub';
-
-                cell.innerHTML += `
-                    <div class="mt-auto text-xs border rounded px-1 py-0.5 text-center mb-1 ${colorClass}">
-                        ${label}
-                    </div>
-                `;
-                if(currentUser.role === 'admin') { cell.classList.add('cursor-pointer'); cell.onclick = () => window.openEdit(b.id); }
-            } else {
-                 const todayStr = new Date().toISOString().split('T')[0];
-                 if(!isWeekend && dateStr < todayStr) {
-                     sumTarget += target;
-                     cell.innerHTML += `<div class="mt-auto text-center text-[10px] text-red-900 font-bold uppercase tracking-widest">Fehlt</div>`;
-                 }
+                cell.innerHTML += `<div class="mt-auto text-[10px] text-center ${color}">${label}</div>`;
+                if(currentUser.role === 'admin') { cell.onclick = () => window.openEdit(b.id); cell.classList.add('cursor-pointer'); }
+            } else if(!isWeekend && dateStr < new Date().toISOString().split('T')[0]) {
+                 sumTarget += target;
+                 cell.innerHTML += `<div class="mt-auto text-center text-[8px] text-red-900 font-bold">FEHLT</div>`;
             }
             grid.appendChild(cell);
         }
-        
         document.getElementById('cal-stat-target').textContent = decToTime(sumTarget);
         document.getElementById('cal-stat-actual').textContent = decToTime(sumActual);
         const bal = sumActual - sumTarget;
         document.getElementById('cal-stat-balance').textContent = (bal>0?'+':'') + decToTime(bal);
-        document.getElementById('cal-stat-balance').className = `text-2xl font-bold ${bal>=0?'text-green-400':'text-red-400'}`;
-    }
+        document.getElementById('cal-stat-balance').className = `text-xl font-bold ${bal>=0?'text-green-500':'text-red-500'}`;
+    };
 
-    document.getElementById('prev-month-btn').addEventListener('click', () => { currentCalDate.setMonth(currentCalDate.getMonth()-1); loadMonthly(); });
-    document.getElementById('next-month-btn').addEventListener('click', () => { currentCalDate.setMonth(currentCalDate.getMonth()+1); loadMonthly(); });
-
-    // --- 5. SYSTEMPROTOKOLL (Audit Log) ---
-    async function loadHistory() {
-        const log = await apiFetch('/history');
-        const tbody = document.getElementById('audit-log-body');
-        tbody.innerHTML = '';
-        if (!log || log.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center italic">Keine Protokolleinträge vorhanden.</td></tr>';
-            return;
+    window.exportToCSV = function() {
+        const selectedMonth = parseInt(document.getElementById('cal-filter-month').value) + 1;
+        const selectedYear = document.getElementById('cal-filter-year').value;
+        const prefix = `${selectedYear}-${String(selectedMonth).padStart(2,'0')}`;
+        
+        let targetUserId = currentUser.id;
+        if(currentUser.role === 'admin') {
+            const val = document.getElementById('cal-filter-user').value;
+            if(!val) { alert("Bitte Mitarbeiter wählen für Export."); return; }
+            targetUserId = val;
         }
-        log.forEach(entry => {
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-800 transition border-b border-gray-800";
-            tr.innerHTML = `
-                <td class="px-6 py-3 font-mono text-gray-500 text-xs">${new Date(entry.timestamp).toLocaleString('de-DE')}</td>
-                <td class="px-6 py-3 font-bold text-gray-300">${entry.actor}</td>
-                <td class="px-6 py-3"><span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs uppercase font-bold">${entry.action}</span></td>
-                <td class="px-6 py-3 text-gray-400 italic text-xs">${entry.details}</td>
-            `;
-            tbody.appendChild(tr);
+
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFFPers.-Nr.;Name;Datum;Start;Ende;Pause;Soll;Ist;Netto;Saldo;Bemerkung\n";
+        let data = bookingsList.filter(b => b.date.startsWith(prefix) && b.userId == targetUserId);
+        
+        if(data.length === 0) { alert("Keine Daten für diesen Zeitraum."); return; }
+        data.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+        data.forEach(b => {
+            const target = getUserTarget(b.userId);
+            const brutto = timeToDec(b.end) - timeToDec(b.start);
+            const pause = b.end ? calcPause(brutto) : 0;
+            const erfasst = Math.max(0, brutto - pause);
+            const saldo = b.end ? (erfasst - target) : 0;
+            csvContent += [b.userId, getUserName(b.userId), b.date, b.start, b.end||'', decToTime(pause), decToTime(target), decToTime(brutto), decToTime(erfasst), decToTime(saldo), b.remarks||''].join(";") + "\n";
+        });
+        const link = document.createElement("a");
+        link.href = encodeURI(csvContent);
+        link.download = `Export_${prefix}_${targetUserId}.csv`;
+        link.click();
+    };
+
+    // 5. ACCOUNT - BLUE HOVER
+    function loadTimeAccount() {
+        const isAdmin = currentUser.role === 'admin';
+        const filterArea = document.getElementById('account-filter-area');
+        const userSelect = document.getElementById('account-user-select');
+
+        if (isAdmin) {
+            filterArea.classList.remove('hidden');
+            filterArea.classList.add('flex');
+            if(!userSelect.value) { return; }
+        } else {
+            filterArea.classList.add('hidden');
+        }
+
+        const targetId = isAdmin ? parseInt(userSelect.value) : currentUser.id;
+        const user = usersList.find(u => u.id === targetId) || currentUser;
+        const bookings = bookingsList.filter(b => b.userId === targetId);
+        
+        let totalBalance = 0;
+        let vacationTaken = 0;
+        let sickDays = 0;
+        const currentYear = new Date().getFullYear();
+
+        bookings.forEach(b => {
+            if(b.end && b.type !== 'Krank' && b.type !== 'Urlaub') {
+                const diff = timeToDec(b.end) - timeToDec(b.start);
+                const pause = calcPause(diff);
+                const net = Math.max(0, diff - pause);
+                const dateObj = new Date(b.date);
+                const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                const effectiveTarget = isWeekend ? 0 : (user.dailyTarget || 8.0);
+                totalBalance += (net - effectiveTarget);
+            }
+            if(new Date(b.date).getFullYear() === currentYear) {
+                if(b.type === 'Urlaub') vacationTaken++;
+                if(b.type === 'Krank') sickDays++;
+            }
+        });
+
+        document.getElementById('acc-balance').textContent = (totalBalance >= 0 ? '+' : '') + decToTime(Math.abs(totalBalance)) + ' h';
+        document.getElementById('acc-balance').className = `text-3xl font-bold ${totalBalance >= 0 ? 'text-green-500' : 'text-red-500'}`;
+        document.getElementById('acc-vacation-total').textContent = user.vacationDays || 30;
+        document.getElementById('acc-vacation-left').textContent = (user.vacationDays || 30) - vacationTaken;
+        document.getElementById('acc-sick').textContent = sickDays;
+
+        const listContainer = document.getElementById('account-history-list');
+        listContainer.innerHTML = '';
+        const historyData = [...bookings].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 50);
+        historyData.forEach(b => {
+             const diff = b.end ? (timeToDec(b.end) - timeToDec(b.start)) : 0;
+             const pause = b.end ? calcPause(diff) : 0;
+             const net = Math.max(0, diff - pause);
+             const div = document.createElement('div');
+             // HIER: Blue Hover
+             div.className = "px-6 py-2 flex justify-between items-center hover:bg-blue-900/20 text-sm text-gray-400 border-b border-[#233554] last:border-0";
+             div.innerHTML = `<div><span class="font-bold text-gray-300">${b.date}</span> <span class="text-xs ml-2">${b.type}</span></div><div class="font-mono">${decToTime(net)} h</div>`;
+             listContainer.appendChild(div);
         });
     }
 
-    // --- EDIT MODAL (Nur Admin) ---
+    // 6. HISTORY - BLUE HOVER
+    function loadHistory() {
+        apiFetch('/history').then(log => {
+            const tbody = document.getElementById('audit-log-body');
+            tbody.innerHTML = '';
+            if (!log || log.length === 0) return;
+            log.forEach(entry => {
+                const tr = document.createElement('tr');
+                // HIER: Blue Hover
+                tr.className = "hover:bg-blue-900/20 border-b border-ahmtimus transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-2 text-gray-500 text-xs">${new Date(entry.timestamp).toLocaleString()}</td>
+                    <td class="px-6 py-2 font-bold text-gray-300">${entry.actor}</td>
+                    <td class="px-6 py-2 text-xs text-blue-400 uppercase">${entry.module || '-'}</td>
+                    <td class="px-6 py-2 text-xs">${entry.action}</td>
+                    <td class="px-6 py-2 text-xs text-red-300 font-mono">${entry.oldValue || '-'}</td>
+                    <td class="px-6 py-2 text-xs text-green-300 font-mono">${entry.newValue || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    // EDIT MODAL LOGIC (WICHTIG FÜR DIE BEARBEITUNG)
     window.openEdit = function(id) {
         const b = bookingsList.find(x => x.id === id); if(!b) return;
         document.getElementById('edit-id').value = b.id;
@@ -546,7 +462,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('edit-end').value = b.end;
         document.getElementById('edit-remark').value = b.remarks || '';
         document.getElementById('admin-edit-modal').classList.remove('hidden');
-    }
+    };
+    
     document.getElementById('close-modal-btn').onclick = () => document.getElementById('admin-edit-modal').classList.add('hidden');
     
     document.getElementById('admin-edit-form').onsubmit = async (e) => {
@@ -557,10 +474,16 @@ document.addEventListener('DOMContentLoaded', () => {
             end: document.getElementById('edit-end').value, 
             remarks: document.getElementById('edit-remark').value 
         };
+        // HIER: Aufruf der korrigierten PUT Route
         const res = await apiFetch(`/bookings/${id}`, 'PUT', body);
-        if(res && res.status === 'success') {
-            document.getElementById('admin-edit-modal').classList.add('hidden');
-            if(currentUser.role==='admin') refreshData('overview');
+        
+        if(res && res.status === 'success') { 
+            document.getElementById('admin-edit-modal').classList.add('hidden'); 
+            // Automatisch aktualisieren, damit die Änderung sichtbar ist
+            refreshData('overview'); 
+            refreshData('monthly'); 
+        } else {
+            alert(res.message || "Fehler beim Speichern");
         }
     };
 });

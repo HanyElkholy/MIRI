@@ -3,256 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AHMTIMUS - Zeiterfassung</title>
+    <title>AHMTIMUS - McKensy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: { extend: { colors: { 'ahmtimus-dark': '#0a192f', 'ahmtimus-blue': '#1e3a8a', 'ahmtimus-light': '#f8f9fa', 'ahmtimus-teal': '#14b8a6' } } }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-ahmtimus-light font-sans">
+<body class="login-bg h-screen overflow-hidden text-slate-300">
 
-    <div id="login-page" class="page min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-        <div class="w-full max-w-md flex flex-col items-center">
-            <div class="logo-container mb-10 transform scale-90 sm:scale-100">
-                 <svg class="logo-icon" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <div id="login-page" class="w-full h-full flex flex-col items-center justify-center p-4 bg-white text-gray-800">
+        <div class="w-full max-w-lg flex flex-col items-center animate-fade"> <div class="logo-container mb-12 flex flex-row items-center justify-center gap-6">
+                
+                <svg class="logo-icon w-24 h-24 text-[#004e82]" viewBox="0 0 100 100" fill="currentColor">
                     <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" />
                     <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
                     <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
                 </svg>
-                <div class="logo-text">
-                    <span class="brand-name">Ahmtimus</span>
-                    <div class="slogan"><span>Automation</span><span>Human</span><span>Machine</span></div>
+                
+                <div class="flex flex-col items-start text-left">
+                    <h1 class="font-brand text-5xl font-bold text-[#004e82] uppercase tracking-wider leading-none">Ahmtimus</h1>
+                    <p class="text-xs text-[#004e82] uppercase tracking-[0.3em] font-light mt-2 ml-1">Automation Human Machine</p>
                 </div>
             </div>
-            <div class="bg-white p-8 rounded-lg shadow-lg w-full border-t-4 border-ahmtimus-blue">
-                <h2 class="text-2xl font-bold text-center text-ahmtimus-dark mb-6">Anmeldung</h2>
-                <form id="login-form">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Benutzername</label>
-                        <input type="text" id="username" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-ahmtimus-blue outline-none" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Passwort</label>
-                        <input type="password" id="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-ahmtimus-blue outline-none" required>
-                    </div>
-                    <p id="error-message" class="hidden text-red-600 text-sm text-center mb-4">Anmeldedaten ungültig.</p>
-                    <button type="submit" class="w-full bg-ahmtimus-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition font-semibold shadow-md">Anmelden</button>
+
+            <div class="w-full px-12">
+                <form id="login-form" class="space-y-6">
+                    <div><input type="text" id="username" class="input-light text-center" placeholder="Benutzername" required></div>
+                    <div><input type="password" id="password" class="input-light text-center" placeholder="Passwort" required></div>
+                    <p id="error-message" class="hidden text-red-500 text-sm text-center">Login fehlgeschlagen.</p>
+                    <button type="submit" class="w-full bg-[#004e82] text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-[#003a61] transition shadow-lg transform hover:-translate-y-1">Anmelden</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div id="tracker-page" class="page min-h-screen bg-ahmtimus-dark text-ahmtimus-light hidden">
+    <div id="tracker-page" class="hidden w-full h-full flex flex-col app-bg">
         
-        <header class="bg-gray-900 shadow-md border-b border-gray-800 sticky top-0 z-40">
-            <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
-                <div class="logo-container logo-header">
-                    <svg class="logo-icon" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" />
-                        <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
-                        <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
-                    </svg>
-                    <div class="logo-text"><span class="brand-name">Ahmtimus</span></div>
+        <header class="fixed top-0 w-full z-50 nav-glass h-20 flex items-center justify-between px-6 lg:px-12 shadow-lg">
+            <div class="flex items-center gap-4 header-logo text-white">
+                <svg class="logo-icon w-12 h-12" viewBox="0 0 100 100" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" fill="#ffffff"/>
+                    <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" fill="#ffffff"/>
+                    <path d="M8 30 L46 54 V96 L8 74 V30 Z" fill="#ffffff"/>
+                </svg>
+                <div class="flex flex-col justify-center">
+                    <span class="brand-name font-bold tracking-widest text-white text-xl leading-none">AHMTIMUS</span>
+                    <span class="text-[10px] text-white uppercase tracking-[0.2em] opacity-80 leading-none mt-1">Automation Human Machine</span>
                 </div>
-                
-                <div class="flex space-x-1 overflow-x-auto">
-                    <button id="nav-overview-button" class="nav-button active-nav"><i class="fas fa-table mr-2"></i>Tagesübersicht</button>
-                    <button id="nav-live-button" class="nav-button inactive-nav hidden"><i class="fas fa-building-user mr-2 text-red-500"></i>Anwesenheit</button>
-                    <button id="nav-requests-button" class="nav-button inactive-nav"><i class="fas fa-file-signature mr-2"></i>Anträge</button>
-                    <button id="nav-monthly-button" class="nav-button inactive-nav"><i class="fas fa-calendar-alt mr-2"></i>Kalender</button>
-                    <button id="nav-history-button" class="nav-button inactive-nav hidden"><i class="fas fa-clipboard-list mr-2"></i>Systemprotokoll</button>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <div class="text-right hidden sm:block leading-tight">
-                        <div id="user-display-name" class="text-sm font-bold text-white">Mitarbeiter</div>
-                        <div id="user-role-display" class="text-[10px] text-ahmtimus-blue font-bold uppercase tracking-wider hidden">Rolle</div>
+            </div>
+
+            <nav class="hidden md:flex items-center gap-2">
+                <button id="nav-live-button" class="nav-item hidden"><i class="fas fa-satellite-dish text-red-500"></i> Live</button>
+                <button id="nav-overview-button" class="nav-item active"><i class="fas fa-list-ul"></i> Journal</button>
+                <div class="relative group">
+                    <button class="nav-item"><i class="fas fa-calendar-check"></i> Planung <i class="fas fa-chevron-down text-[10px] ml-1"></i></button>
+                    <div class="nav-dropdown">
+                        <button id="nav-requests-button" class="dropdown-link w-full">Anträge & Korrekturen</button>
+                        <button id="nav-monthly-button" class="dropdown-link w-full">Monatskalender</button>
                     </div>
-                    <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium transition shadow-md"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+                <div class="relative group">
+                    <button class="nav-item"><i class="fas fa-chart-pie"></i> Konto <i class="fas fa-chevron-down text-[10px] ml-1"></i></button>
+                    <div class="nav-dropdown">
+                        <button id="nav-account-button" class="dropdown-link w-full">Zeitkonto</button>
+                        <div id="nav-group-admin" class="hidden border-t border-[#233554] mt-1 pt-1">
+                            <button id="nav-history-button" class="dropdown-link w-full text-yellow-500">Systemprotokoll</button>
+                        </div>
+                    </div>
                 </div>
             </nav>
+
+            <div class="flex items-center gap-6">
+                <div class="hidden lg:block border-r border-gray-600 pr-6">
+                    <span id="client-name-display" class="text-sm font-bold text-ahmtimus-blue uppercase tracking-widest bg-white/10 px-3 py-1 rounded text-white">McKensy</span>
+                </div>
+                <div class="text-right hidden lg:block">
+                    <div id="user-display-name" class="text-sm font-bold text-white">Mitarbeiter</div>
+                    <div class="text-xs text-gray-400">Angemeldet</div>
+                </div>
+                <button id="logout-button" class="btn-logout hover:text-blue-300 transition"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
         </header>
 
-        <div id="content-live" class="content-section hidden">
-            <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white border-l-4 border-red-500 pl-4 mb-6">Aktuelle Anwesenheit</h1>
-                <div class="bg-gray-900 p-6 rounded-lg border border-gray-800 shadow-xl">
-                    <div id="live-users-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-                </div>
-            </main>
-        </div>
-
-        <div id="content-overview" class="content-section">
-            <main class="container mx-auto p-6">
-                <div class="flex flex-col md:flex-row justify-between items-end mb-6">
-                    <h1 class="text-3xl font-bold text-white border-l-4 border-ahmtimus-blue pl-4">Tagesübersicht</h1>
-                    
-                    <div class="flex gap-2 bg-gray-800 p-2 rounded-lg items-center border border-gray-700 shadow-lg mt-4 md:mt-0">
-                        <div id="admin-filters" class="hidden flex items-center gap-2">
-                             <label class="text-xs font-bold text-gray-400 uppercase">MA:</label>
-                             <select id="filter-user-overview" class="bg-gray-700 text-white px-3 py-1 rounded border border-gray-600 text-sm outline-none"></select>
+        <main class="flex-1 pt-24 px-4 sm:px-8 pb-8 max-w-[1800px] mx-auto w-full overflow-y-auto custom-scroll">
+            
+            <div id="content-live" class="content-section hidden animate-fade space-y-6">
+                <div id="user-live-terminal" class="hidden">
+                    <h1 class="text-2xl font-bold text-white mb-6 font-brand border-l-4 border-blue-500 pl-4">Ihr Terminal</h1>
+                    <div class="card p-10 bg-gradient-to-br from-[#112240] to-[#0d1b33] border-t-4 border-[#004e82] max-w-2xl mx-auto">
+                        <div class="text-center mb-10">
+                            <div class="text-gray-500 text-xs uppercase font-bold tracking-widest mb-2">Aktueller Status</div>
+                            <div id="status-display" class="text-5xl font-bold text-white mb-3">...</div>
+                            <div id="last-stamp-time" class="inline-block bg-[#0a192f] text-[#5b8ab5] px-4 py-1 rounded-full text-sm font-mono border border-[#233554]">--:--</div>
                         </div>
-                        <label class="text-xs font-bold text-gray-400 uppercase ml-2">Datum:</label>
-                        <input type="date" id="filter-date" class="bg-gray-700 text-white px-3 py-1 rounded border border-gray-600 text-sm outline-none">
-                        <button id="apply-filter-btn" class="bg-ahmtimus-blue px-4 py-1 rounded text-white text-sm font-bold hover:bg-blue-800 transition">Suchen</button>
+                        <div class="grid grid-cols-2 gap-8">
+                            <button onclick="window.manualStamp('start')" class="group py-8 rounded-2xl bg-[#0a192f] border border-green-900/30 hover:bg-green-900/10 hover:border-green-500 text-green-500 transition shadow-xl"><i class="fas fa-play text-4xl mb-3"></i><div class="font-bold text-lg tracking-widest">KOMMEN</div></button>
+                            <button onclick="window.manualStamp('end')" class="group py-8 rounded-2xl bg-[#0a192f] border border-red-900/30 hover:bg-red-900/10 hover:border-red-500 text-red-500 transition shadow-xl"><i class="fas fa-stop text-4xl mb-3"></i><div class="font-bold text-lg tracking-widest">GEHEN</div></button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="bg-gray-900 shadow-xl rounded-lg overflow-hidden border border-gray-800">
-                    <div id="overview-header"></div>
-                    <div id="overview-list-container" class="divide-y divide-gray-800"></div>
+                <div id="admin-live-dashboard" class="hidden">
+                    <h1 class="text-2xl font-bold text-white border-l-4 border-red-500 pl-4">Live Monitor</h1>
+                    <div id="live-users-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"></div>
                 </div>
-            </main>
-        </div>
+            </div>
 
-        <div id="content-requests" class="content-section hidden">
-            <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white border-l-4 border-yellow-500 pl-4 mb-8">Antragswesen</h1>
-                
-                <div id="admin-request-filter-area" class="hidden mb-6 bg-gray-800 p-4 rounded border border-gray-700">
-                    <h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Anträge filtern</h4>
-                    <div class="flex gap-4">
-                        <select id="req-filter-user" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 text-sm w-full md:w-auto"><option value="">Alle Mitarbeiter</option></select>
-                        <select id="req-filter-status" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 text-sm w-full md:w-auto">
-                            <option value="">Alle Status</option>
-                            <option value="pending">Ausstehend</option>
-                            <option value="approved">Genehmigt</option>
-                            <option value="rejected">Abgelehnt</option>
-                        </select>
-                        <button id="req-filter-btn" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded text-white font-bold text-sm">Filtern</button>
+            <div id="content-overview" class="content-section hidden animate-fade space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+                    <h1 class="text-2xl font-bold text-white border-l-4 border-[#004e82] pl-4">Journal</h1>
+                    <div class="flex gap-2 items-center">
+                        <div id="admin-filters-overview" class="hidden">
+                            <select id="overview-user-select" class="input-dark py-1 px-3 text-sm w-48"><option value="">Bitte auswählen...</option></select>
+                        </div>
+                        <input type="date" id="filter-date" class="input-dark py-1 px-3 text-sm w-auto">
+                        <button id="apply-filter-btn" class="btn-primary py-1 px-3 text-sm">Anzeigen</button>
                     </div>
                 </div>
+                <div class="card overflow-hidden w-full">
+                    <div class="min-w-[1000px] overflow-x-auto">
+                        <div id="overview-header"></div>
+                        <div id="overview-list-container"></div>
+                    </div>
+                </div>
+            </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800 h-fit">
-                        <h3 class="text-xl font-semibold text-white mb-4 border-b border-gray-700 pb-2">Neuen Antrag erstellen</h3>
-                        
-                        <form id="request-form" enctype="multipart/form-data">
-                            
-                            <div id="request-target-user-container" class="mb-3 hidden bg-blue-900/20 p-2 rounded border border-blue-900/50">
-                                <label class="block text-xs font-bold text-blue-300 uppercase mb-1">Für Mitarbeiter (Admin-Modus)</label>
-                                <select id="request-target-user" name="targetUserId" class="w-full bg-gray-800 border border-gray-600 rounded text-white px-3 py-2 outline-none focus:border-blue-500">
-                                    <option value="">(Bitte wählen)</option>
-                                </select>
+            <div id="content-requests" class="content-section hidden animate-fade space-y-6">
+                <h1 class="text-2xl font-bold text-white border-l-4 border-yellow-500 pl-4">Anträge & Korrekturen</h1>
+                <div id="admin-request-filter-area" class="hidden justify-end gap-2 mb-2 items-center">
+                    <label class="text-xs uppercase text-gray-500 font-bold">Filter:</label>
+                    <select id="req-filter-user" class="input-dark py-1 text-sm w-40"><option value="" disabled selected>Mitarbeiter wählen...</option></select>
+                    <select id="req-filter-status" class="input-dark py-1 text-sm w-32"><option value="">Alle</option><option value="pending" selected>Offen</option><option value="approved">OK</option><option value="rejected">Nein</option></select>
+                    <button id="req-filter-btn" class="btn-primary py-1 px-3 text-sm">Anzeigen</button>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="card p-6 h-fit border-t-4 border-yellow-600">
+                        <h3 class="font-bold text-white mb-6">Neuer Antrag</h3>
+                        <form id="request-form">
+                            <div id="request-target-user-container" class="hidden mb-4 p-3 bg-blue-900/20 border border-blue-900/50 rounded">
+                                <label class="block text-xs font-bold text-blue-400 uppercase mb-1">Für Mitarbeiter (Admin)</label>
+                                <select id="request-target-user" name="targetUserId" class="input-dark text-sm"><option value="" disabled selected>Bitte auswählen...</option></select>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Antragsart</label>
-                                <select id="req-type" name="type" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 outline-none focus:border-yellow-500">
-                                    <option value="Korrektur">Zeitkorrektur</option>
-                                    <option value="Urlaub">Urlaub</option>
-                                    <option value="Krank">Krankmeldung</option>
-                                    <option value="Sonstiges">Sonstiges</option>
-                                </select>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Typ</label>
+                            <select name="type" class="input-dark mb-4"><option value="" disabled selected>Bitte auswählen...</option><option value="Korrektur">Zeitkorrektur</option><option value="Urlaub">Urlaub</option><option value="Krank">Krankmeldung</option><option value="Sonstiges">Sonstiges</option></select>
+                            <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Datum</label><input type="date" name="date" class="input-dark" required></div>
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Startzeit</label><input type="time" name="newStart" class="input-dark"></div>
                             </div>
-                            <div class="mb-3">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Datum</label>
-                                <input type="date" id="req-date" name="date" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none" required>
+                             <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Endzeit</label><input type="time" name="newEnd" class="input-dark"></div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4 mb-3">
-                                <div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Beginn</label><input type="time" id="req-start" name="newStart" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none"></div>
-                                <div><label class="block text-xs font-bold text-gray-400 uppercase mb-1">Ende</label><input type="time" id="req-end" name="newEnd" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 focus:border-yellow-500 outline-none"></div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Begründung</label>
-                                <textarea id="req-reason" name="reason" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-3 py-2 h-20 focus:border-yellow-500 outline-none resize-none" placeholder="Details angeben..." required></textarea>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Anhang (z.B. Attest)</label>
-                                <input type="file" id="req-file" name="attachment" class="block w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600">
-                            </div>
-                            <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded shadow-md transition">Antrag einreichen</button>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Grund <span class="text-red-500">*</span></label>
+                            <textarea name="reason" class="input-dark h-24 resize-none mb-4" placeholder="..." required></textarea>
+                            <button type="submit" class="w-full bg-[#004e82] text-white py-3 rounded-lg font-bold hover:bg-[#003a61]">Absenden</button>
                         </form>
                     </div>
+                    <div class="col-span-2 card p-6"><h3 class="font-bold text-gray-400 mb-4 uppercase text-xs tracking-widest">Historie</h3><div id="request-list-container" class="max-h-[600px] overflow-y-auto pr-2"></div></div>
+                </div>
+            </div>
 
-                    <div class="col-span-2 bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800 flex flex-col h-full">
-                        <h3 class="text-xl font-semibold text-white mb-4">Übersicht der Anträge</h3>
-                        <div id="request-list-container" class="space-y-3 overflow-y-auto max-h-[600px] pr-2"></div>
+            <div id="content-monthly" class="content-section hidden animate-fade space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                    <h1 class="text-2xl font-bold text-white border-l-4 border-purple-500 pl-4">Monatskalender</h1>
+                    
+                    <div class="flex flex-wrap gap-2 items-center bg-ahmtimus-card p-2 rounded-lg border border-ahmtimus">
+                        <div id="cal-user-container" class="hidden">
+                            <select id="cal-filter-user" class="input-dark py-2 px-3 text-sm w-48 border-none bg-[#0a192f]">
+                                <option value="" disabled selected>Mitarbeiter wählen...</option>
+                            </select>
+                        </div>
+
+                        <select id="cal-filter-month" class="input-dark py-2 px-3 text-sm w-32 border-none bg-[#0a192f]">
+                            <option value="0">Januar</option><option value="1">Februar</option><option value="2">März</option>
+                            <option value="3">April</option><option value="4">Mai</option><option value="5">Juni</option>
+                            <option value="6">Juli</option><option value="7">August</option><option value="8">September</option>
+                            <option value="9">Oktober</option><option value="10">November</option><option value="11">Dezember</option>
+                        </select>
+
+                        <select id="cal-filter-year" class="input-dark py-2 px-3 text-sm w-24 border-none bg-[#0a192f]">
+                            <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
+                        </select>
+
+                        <button onclick="window.loadMonthly()" class="btn-primary py-2 px-4 text-sm ml-2">Filtern</button>
+                        
+                        <button onclick="window.exportToCSV()" class="bg-green-700 text-white py-2 px-3 rounded text-sm hover:bg-green-600 ml-2" title="Export CSV">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
                     </div>
                 </div>
-            </main>
-        </div>
 
-        <div id="content-monthly" class="content-section hidden">
-             <main class="container mx-auto p-6">
-                <div class="flex justify-between items-center mb-8">
-                    <h1 class="text-3xl font-bold text-white border-l-4 border-green-500 pl-4">Monatsjournal</h1>
-                    <button id="export-csv-btn" class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center shadow">
-                        <i class="fas fa-file-csv mr-2"></i> Export (Excel)
-                    </button>
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="card p-4 text-center"><div class="text-xs text-gray-500 uppercase">Soll Std.</div><div id="cal-stat-target" class="text-xl font-mono text-white">00:00</div></div>
+                    <div class="card p-4 text-center"><div class="text-xs text-gray-500 uppercase">Ist Std.</div><div id="cal-stat-actual" class="text-xl font-mono text-blue-400">00:00</div></div>
+                    <div class="card p-4 text-center border border-ahmtimus"><div class="text-xs text-gray-500 uppercase">Gleitzeit (Monat)</div><div id="cal-stat-balance" class="text-xl font-mono font-bold">00:00</div></div>
                 </div>
-                <div class="bg-gray-900 p-6 rounded-lg shadow-lg border border-gray-800">
-                     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-                         <div class="flex items-center space-x-4">
-                            <div id="calendar-user-select-container" class="hidden">
-                                <select id="calendar-user-select" class="bg-gray-700 text-white px-3 py-2 rounded border border-gray-600 outline-none"></select>
-                            </div>
-                            <h2 id="calendar-user-display" class="text-xl font-bold text-white"></h2>
-                         </div>
-                         <div class="flex items-center bg-gray-800 rounded p-1 border border-gray-700">
-                            <button id="prev-month-btn" class="text-gray-400 px-3 hover:text-white"><i class="fas fa-chevron-left"></i></button>
-                            <span id="calendar-month-label" class="text-lg text-white font-bold uppercase min-w-[150px] text-center"></span>
-                            <button id="next-month-btn" class="text-gray-400 px-3 hover:text-white"><i class="fas fa-chevron-right"></i></button>
-                         </div>
-                     </div>
-                     <div id="calendar-grid" class="grid grid-cols-7 gap-1 bg-gray-900"></div>
-                     <div class="mt-6 grid grid-cols-3 gap-4 text-center border-t border-gray-800 pt-6">
-                        <div><div class="text-gray-500 text-[10px] uppercase">Soll</div><div id="cal-stat-target" class="text-2xl font-bold text-gray-300"></div></div>
-                        <div><div class="text-gray-500 text-[10px] uppercase">Ist</div><div id="cal-stat-actual" class="text-2xl font-bold text-white"></div></div>
-                        <div><div class="text-gray-500 text-[10px] uppercase">Saldo</div><div id="cal-stat-balance" class="text-2xl font-bold"></div></div>
-                     </div>
-                </div>
-             </main>
-        </div>
+                <div class="card p-4"><div id="calendar-grid" class="grid grid-cols-7 gap-px bg-[#233554] border border-[#233554]"></div></div>
+            </div>
 
-        <div id="content-history" class="content-section hidden">
-            <main class="container mx-auto p-6">
-                <h1 class="text-3xl font-bold text-white border-l-4 border-purple-500 pl-4 mb-8">Systemprotokoll</h1>
-                <div class="bg-gray-900 rounded-lg shadow-lg border border-gray-800 overflow-hidden">
-                    <table class="w-full text-left text-sm text-gray-400">
-                        <thead class="bg-gray-800 text-xs uppercase font-bold text-gray-200">
+            <div id="content-account" class="content-section hidden animate-fade space-y-6">
+                <h1 class="text-2xl font-bold text-white border-l-4 border-green-500 pl-4">Zeitkonto Übersicht</h1>
+                <div id="account-filter-area" class="hidden justify-end">
+                    <select id="account-user-select" class="input-dark py-1 px-3 text-sm w-48"><option value="" disabled selected>Bitte auswählen...</option></select>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="card p-6 bg-gradient-to-br from-[#112240] to-[#0a192f] border-t-4 border-blue-500">
+                        <div class="text-gray-500 text-xs uppercase font-bold tracking-widest mb-4 border-b border-gray-700 pb-2">Aktueller Stand</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-400 text-sm">Gleitzeitkonto:</span>
+                            <span id="acc-balance" class="text-3xl font-bold text-white">+00:00 h</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card p-6 border-t-4 border-purple-500">
+                        <div class="text-gray-500 text-xs uppercase font-bold tracking-widest mb-4 border-b border-gray-700 pb-2">Urlaub</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-400 text-sm">Anspruch:</span>
+                            <span id="acc-vacation-total" class="font-bold text-white">30</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2 border-t border-gray-700 pt-2">
+                            <span class="text-white text-sm font-bold">Resturlaub:</span>
+                            <span id="acc-vacation-left" class="text-2xl font-bold text-green-400">30</span>
+                        </div>
+                    </div>
+
+                    <div class="card p-6 border-t-4 border-red-500">
+                        <div class="text-gray-500 text-xs uppercase font-bold tracking-widest mb-4 border-b border-gray-700 pb-2">Krankheit</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-400 text-sm">Tage (aktuelles Jahr):</span>
+                            <span id="acc-sick" class="text-2xl font-bold text-red-400">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6"><h3 class="font-bold text-gray-300 mb-4 border-b border-[#233554] pb-2">Letzte Buchungen</h3><div id="account-history-list" class="divide-y divide-[#233554] max-h-[400px] overflow-y-auto"></div></div>
+            </div>
+
+            <div id="content-history" class="content-section hidden animate-fade space-y-6">
+                <h1 class="text-2xl font-bold text-white border-l-4 border-gray-500 pl-4">Systemprotokoll</h1>
+                <p class="text-xs text-gray-500 italic mb-2">.</p>
+                <div class="card overflow-hidden w-full">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-[#0d1b33] text-xs uppercase text-gray-500 font-bold border-b border-[#233554]">
                             <tr>
-                                <th class="px-6 py-3">Zeitpunkt</th>
+                                <th class="px-6 py-3">Zeitstempel</th>
                                 <th class="px-6 py-3">Akteur</th>
+                                <th class="px-6 py-3">Modul</th>
                                 <th class="px-6 py-3">Aktion</th>
-                                <th class="px-6 py-3">Details</th>
+                                <th class="px-6 py-3 text-red-400">Alter Wert</th>
+                                <th class="px-6 py-3 text-green-400">Neuer Wert</th>
                             </tr>
                         </thead>
-                        <tbody id="audit-log-body" class="divide-y divide-gray-700"></tbody>
+                        <tbody id="audit-log-body" class="text-sm divide-y divide-[#233554]"></tbody>
                     </table>
                 </div>
-            </main>
-        </div>
+            </div>
 
+        </main>
     </div>
 
-    <div id="admin-edit-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-full max-w-md p-6 border-t-4 border-ahmtimus-blue">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">Buchung korrigieren</h3>
+    <div id="admin-edit-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+         <div class="card w-full max-w-md p-6 border-t-4 border-[#004e82] shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-4">Datensatz korrigieren</h3>
             <form id="admin-edit-form">
                 <input type="hidden" id="edit-id">
-                <div class="mb-3"><label class="block text-xs font-bold text-gray-500 uppercase">Mitarbeiter</label><input type="text" id="edit-user" class="w-full bg-gray-100 p-2 rounded text-gray-700" readonly></div>
-                <div class="grid grid-cols-2 gap-4 mb-3">
-                    <div><label class="block text-xs font-bold text-gray-500 uppercase">Start</label><input type="time" id="edit-start" class="w-full border p-2 rounded"></div>
-                    <div><label class="block text-xs font-bold text-gray-500 uppercase">Ende</label><input type="time" id="edit-end" class="w-full border p-2 rounded"></div>
+                <div class="mb-4"><label class="text-xs uppercase text-gray-500 font-bold">Mitarbeiter</label><input type="text" id="edit-user" class="input-dark text-gray-500 cursor-not-allowed" disabled></div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div><label class="text-xs uppercase text-gray-500 font-bold">Start</label><input type="time" id="edit-start" class="input-dark"></div>
+                    <div><label class="text-xs uppercase text-gray-500 font-bold">Ende</label><input type="time" id="edit-end" class="input-dark"></div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-xs font-bold text-red-600 uppercase">Änderungsgrund (Pflicht)*</label>
-                    <input type="text" id="edit-remark" class="w-full border-2 border-red-100 p-2 rounded focus:border-red-500 outline-none" placeholder="Warum wird geändert?" required>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="close-modal-btn" class="px-4 py-2 bg-gray-200 rounded font-bold">Abbrechen</button>
-                    <button type="submit" class="px-4 py-2 bg-ahmtimus-blue text-white rounded font-bold">Speichern</button>
-                </div>
+                <label class="text-xs uppercase text-gray-500 font-bold">Änderungsgrund </label><input type="text" id="edit-remark" class="input-dark mb-6 border-red-900/50 focus:border-red-500" placeholder="Begründung..." required>
+                <div class="flex justify-end gap-3"><button type="button" id="close-modal-btn" class="text-gray-400 hover:text-white">Abbrechen</button><button type="submit" class="btn-primary">Speichern</button></div>
             </form>
         </div>
     </div>
-    
+
     <script src="app.js"></script>
 </body>
 </html>

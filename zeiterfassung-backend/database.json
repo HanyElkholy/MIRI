@@ -1,179 +1,153 @@
 {
+  "clients": [
+    {
+      "id": 1,
+      "name": "McKensy"
+    }
+  ],
   "users": [
     {
       "id": 101,
-      "cardId": "6375B30B",
+      "clientId": 1,
       "username": "admin",
-      "password": "admin",
+      "password": "123",
       "role": "admin",
-      "displayName": "Herr Müller (Admin)"
+      "displayName": "Administrator",
+      "dailyTarget": 8,
+      "vacationDays": 30
     },
     {
       "id": 102,
-      "cardId": "6375B20B",
-      "username": "nils",
-      "password": "nils",
+      "clientId": 1,
+      "username": "ma",
+      "password": "123",
       "role": "user",
-      "displayName": "Nils Müller"
-    },
-    {
-      "id": 103,
-      "cardId": "A1B2C3D4",
-      "username": "erika",
-      "password": "erika",
-      "role": "user",
-      "displayName": "Erika Mustermann"
+      "displayName": "Max Muster",
+      "dailyTarget": 8,
+      "vacationDays": 30
     }
   ],
-  "bookings": [
+  "bookings": [],
+  "requests": [],
+  "auditLog": [
     {
-      "id": 1763839901616,
-      "userId": 102,
-      "date": "2025-11-07",
-      "start": "12:02",
-      "end": "21:02",
-      "remarks": "Nachtrag: 32e",
-      "type": "valid"
+      "id": 1764438448499,
+      "timestamp": "2025-11-29T17:47:28.499Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763842129245,
-      "userId": 101,
-      "date": "2025-11-22",
-      "start": "21:08",
-      "end": "",
-      "remarks": "",
-      "type": "valid"
+      "id": 1764439598744,
+      "timestamp": "2025-11-29T18:06:38.744Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763842238281,
-      "userId": 102,
-      "date": "2025-11-22",
-      "start": "21:10",
-      "end": "23:00",
-      "remarks": "",
-      "type": "valid"
+      "id": 1764439756360,
+      "timestamp": "2025-11-29T18:09:16.360Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763842537575,
-      "userId": 102,
-      "date": "2025-11-23",
-      "start": "12:00",
-      "end": "21:21",
-      "remarks": "Testasfdsafdsafdsafsafdsafdsafsafdsafdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-      "type": "valid",
-      "history": [
-        {
-          "changedAt": "2025-11-23T15:42:58.403Z",
-          "changedBy": "Herr Müller (Admin)",
-          "type": "Manuelle Korrektur",
-          "oldStart": "03:00",
-          "oldEnd": "21:21",
-          "oldRemarks": "Nachtragsad"
-        },
-        {
-          "changedAt": "2025-11-23T15:44:53.539Z",
-          "changedBy": "Herr Müller (Admin)",
-          "type": "Manuelle Korrektur",
-          "oldStart": "12:00",
-          "oldEnd": "21:21",
-          "oldRemarks": "Test"
-        }
-      ],
-      "isEdited": true
+      "id": 1764440893699,
+      "timestamp": "2025-11-29T18:28:13.699Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763912408346,
-      "userId": 102,
-      "date": "0012-02-12",
-      "start": "23:33",
-      "end": "21:02",
-      "remarks": "Nachtrag: Urlaub",
-      "type": "valid",
-      "history": [
-        {
-          "changedAt": "2025-11-23T15:40:08.345Z",
-          "changedBy": "admin",
-          "type": "Antragsgenehmigung",
-          "oldStart": null,
-          "oldEnd": null
-        }
-      ],
-      "isEdited": true
+      "id": 1764441021685,
+      "timestamp": "2025-11-29T18:30:21.685Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763913499473,
-      "userId": 101,
-      "date": "2002-11-11",
-      "start": "11:11",
-      "end": "12:12",
-      "remarks": "Nachtrag: asfsafsfd",
-      "type": "valid",
-      "history": [
-        {
-          "changedAt": "2025-11-23T15:58:19.472Z",
-          "changedBy": "admin",
-          "type": "Antragsgenehmigung",
-          "oldStart": null,
-          "oldEnd": null
-        }
-      ],
-      "isEdited": true
-    }
-  ],
-  "requests": [
-    {
-      "id": 1763839826820,
-      "userId": 102,
-      "date": "2025-11-07",
-      "newStart": "12:02",
-      "newEnd": "21:02",
-      "reason": "32e",
-      "status": "approved"
+      "id": 1764443416481,
+      "timestamp": "2025-11-29T19:10:16.481Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763842510250,
-      "userId": 102,
-      "date": "2025-11-23",
-      "newStart": "10:00",
-      "newEnd": "21:21",
-      "reason": "sdfdsaf",
-      "status": "approved"
+      "id": 1764443490147,
+      "timestamp": "2025-11-29T19:11:30.147Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763912378818,
-      "userId": 102,
-      "date": "0012-02-12",
-      "newStart": "23:33",
-      "newEnd": "21:02",
-      "reason": "Urlaub",
-      "status": "approved"
+      "id": 1764444014697,
+      "timestamp": "2025-11-29T19:20:14.697Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763912447198,
-      "userId": 102,
-      "date": "0022-02-11",
-      "newStart": "12:02",
-      "newEnd": "03:22",
-      "reason": "Udsffsa",
-      "status": "rejected"
+      "id": 1764445313564,
+      "timestamp": "2025-11-29T19:41:53.564Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763913470410,
-      "userId": 101,
-      "date": "2002-11-11",
-      "newStart": "11:11",
-      "newEnd": "12:12",
-      "reason": "asfsafsfd",
-      "status": "approved"
+      "id": 1764445438854,
+      "timestamp": "2025-11-29T19:43:58.854Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     },
     {
-      "id": 1763923858673,
-      "userId": 102,
-      "date": "0022-02-22",
-      "newStart": "11:01",
-      "newEnd": "12:01",
-      "reason": "123",
-      "status": "rejected"
+      "id": 1764445771516,
+      "timestamp": "2025-11-29T19:49:31.516Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764445828558,
+      "timestamp": "2025-11-29T19:50:28.558Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764446323837,
+      "timestamp": "2025-11-29T19:58:43.837Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764446483505,
+      "timestamp": "2025-11-29T20:01:23.505Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764447018905,
+      "timestamp": "2025-11-29T20:10:18.905Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764447296578,
+      "timestamp": "2025-11-29T20:14:56.578Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764447499154,
+      "timestamp": "2025-11-29T20:18:19.154Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     }
   ]
 }
