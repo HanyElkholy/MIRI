@@ -61,6 +61,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logout-button').addEventListener('click', () => location.reload());
     function logout() { currentUser = null; location.reload(); }
 
+    // --- MOBILE MENU LOGIC ---
+    const mobileMenu = document.getElementById('mobile-menu-overlay');
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+        mobileMenu.classList.remove('hidden');
+        // Admin Links prüfen
+        if(currentUser && currentUser.role === 'admin') {
+            document.getElementById('mob-nav-live').classList.remove('hidden');
+            document.getElementById('mob-nav-history').classList.remove('hidden');
+        } else {
+            document.getElementById('mob-nav-live').classList.add('hidden');
+            document.getElementById('mob-nav-history').classList.add('hidden');
+        }
+    });
+    document.getElementById('close-mobile-menu').addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    
+    const mobNavMap = { 
+        'mob-nav-live': 'live', 
+        'mob-nav-journal': 'overview', 
+        'mob-nav-requests': 'requests', 
+        'mob-nav-calendar': 'monthly', 
+        'mob-nav-account': 'account', 
+        'mob-nav-history': 'history' 
+    };
+    Object.keys(mobNavMap).forEach(id => {
+        const btn = document.getElementById(id);
+        if(btn) btn.addEventListener('click', () => {
+            switchSection(mobNavMap[id]);
+            mobileMenu.classList.add('hidden');
+        });
+    });
+    document.getElementById('mob-logout').addEventListener('click', () => logout());
+
     // --- CENTRAL DROPDOWN INIT ---
     function initAllDropdowns() {
         const selects = [
@@ -155,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. OVERVIEW (JOURNAL) - MIT BLUE HOVER & EDIT ACTION
+    // 2. OVERVIEW (JOURNAL)
     function loadOverview() {
         const isAdmin = currentUser.role === 'admin';
         const filterUser = document.getElementById('overview-user-select');
@@ -200,7 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (b.type === 'Krank') typeBadge = '<span class="text-[10px] bg-red-900 text-red-300 px-1 rounded mr-1">KRANK</span>';
 
             const div = document.createElement('div');
-            // HIER: 'hover-blue' statt hover:bg-ahmtimus-dark
             div.className = `grid ${gridClass} gap-3 px-4 py-3 items-center hover-blue text-sm transition group border-b border-ahmtimus last:border-0 text-gray-300`;
             
             let html = isAdmin ? `<div class="font-mono text-xs text-gray-600">${b.userId}</div><div class="font-bold text-white truncate">${getUserName(b.userId)}</div>` : ``;
@@ -212,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${isAdmin ? '' : `<div class="text-center font-mono font-bold ${saldo >= 0 ? 'text-green-500' : 'text-red-500'}">${b.end ? (saldo>0?'+':'')+decToTime(saldo) : '-'}</div>`}
                 <div class="truncate text-gray-500 text-xs">${typeBadge}${b.remarks||''}</div>`;
             
-            // Edit Button für Admin
             if(isAdmin) html += `<div class="text-center"><button onclick="window.openEdit(${b.id})" class="text-gray-500 hover:text-white transition bg-[#0d1b33] h-8 w-8 rounded-full border border-gray-700 hover:border-blue-500 shadow-sm"><i class="fas fa-pen text-xs"></i></button></div>`;
             
             div.innerHTML = html;
@@ -267,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res && res.status === 'success') { alert('Gesendet.'); e.target.reset(); refreshData('requests'); }
     });
 
-    // 4. MONTHLY CALENDAR - MIT BLUE HOVER
+    // 4. MONTHLY CALENDAR
     window.loadMonthly = function() {
         const grid = document.getElementById('calendar-grid');
         const calUserContainer = document.getElementById('cal-user-container');
@@ -308,7 +338,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const cell = document.createElement('div');
             const isWeekend = (new Date(selectedYear, selectedMonth, day).getDay() % 6 === 0);
             
-            // HIER: hover:bg-blue-900/30 statt ahmtimus-dark
             cell.className = `min-h-[80px] p-1 border-t border-l border-ahmtimus relative flex flex-col ${isWeekend ? 'bg-[#050f1e]' : 'bg-ahmtimus-card hover:bg-blue-900/30'}`;
             cell.innerHTML = `<div class="text-right text-xs font-bold ${isWeekend ? 'text-blue-500' : 'text-gray-600'}">${day}</div>`;
 
@@ -370,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     };
 
-    // 5. ACCOUNT - BLUE HOVER
+    // 5. ACCOUNT
     function loadTimeAccount() {
         const isAdmin = currentUser.role === 'admin';
         const filterArea = document.getElementById('account-filter-area');
@@ -423,14 +452,13 @@ document.addEventListener('DOMContentLoaded', () => {
              const pause = b.end ? calcPause(diff) : 0;
              const net = Math.max(0, diff - pause);
              const div = document.createElement('div');
-             // HIER: Blue Hover
              div.className = "px-6 py-2 flex justify-between items-center hover:bg-blue-900/20 text-sm text-gray-400 border-b border-[#233554] last:border-0";
              div.innerHTML = `<div><span class="font-bold text-gray-300">${b.date}</span> <span class="text-xs ml-2">${b.type}</span></div><div class="font-mono">${decToTime(net)} h</div>`;
              listContainer.appendChild(div);
         });
     }
 
-    // 6. HISTORY - BLUE HOVER
+    // 6. HISTORY
     function loadHistory() {
         apiFetch('/history').then(log => {
             const tbody = document.getElementById('audit-log-body');
@@ -438,7 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!log || log.length === 0) return;
             log.forEach(entry => {
                 const tr = document.createElement('tr');
-                // HIER: Blue Hover
                 tr.className = "hover:bg-blue-900/20 border-b border-ahmtimus transition";
                 tr.innerHTML = `
                     <td class="px-6 py-2 text-gray-500 text-xs">${new Date(entry.timestamp).toLocaleString()}</td>
@@ -453,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // EDIT MODAL LOGIC (WICHTIG FÜR DIE BEARBEITUNG)
+    // EDIT MODAL LOGIC
     window.openEdit = function(id) {
         const b = bookingsList.find(x => x.id === id); if(!b) return;
         document.getElementById('edit-id').value = b.id;
@@ -474,12 +501,10 @@ document.addEventListener('DOMContentLoaded', () => {
             end: document.getElementById('edit-end').value, 
             remarks: document.getElementById('edit-remark').value 
         };
-        // HIER: Aufruf der korrigierten PUT Route
         const res = await apiFetch(`/bookings/${id}`, 'PUT', body);
         
         if(res && res.status === 'success') { 
             document.getElementById('admin-edit-modal').classList.add('hidden'); 
-            // Automatisch aktualisieren, damit die Änderung sichtbar ist
             refreshData('overview'); 
             refreshData('monthly'); 
         } else {

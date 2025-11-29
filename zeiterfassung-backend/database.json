@@ -148,6 +148,34 @@
       "actor": "Administrator",
       "action": "Login",
       "details": "Erfolgreich"
+    },
+    {
+      "id": 1764447949516,
+      "timestamp": "2025-11-29T20:25:49.516Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764447984791,
+      "timestamp": "2025-11-29T20:26:24.791Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764448613884,
+      "timestamp": "2025-11-29T20:36:53.884Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
+    },
+    {
+      "id": 1764448866196,
+      "timestamp": "2025-11-29T20:41:06.196Z",
+      "actor": "Administrator",
+      "action": "Login",
+      "details": "Erfolgreich"
     }
   ]
 }

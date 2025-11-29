@@ -5,7 +5,7 @@
 /* Eigene Farben für McKensy Corporate Design */
 :root {
     --ahmtimus-dark: #112240;
-    --ahmtimus-card: #1e3a8a; /* Angepasst für blauere Basis */
+    --ahmtimus-card: #1e3a8a; 
     --ahmtimus-blue: #004e82; 
     --ahmtimus-border: #233554;
 }
@@ -90,6 +90,6 @@ body { font-family: 'Inter', sans-serif; }
 
 /* HOVER: Klare blaue Farbe statt Grau/Grün */
 .hover-blue:hover {
-    background-color: rgba(30, 58, 138, 0.4) !important; /* Tailwind Blue-900 mit Transparenz */
+    background-color: rgba(30, 58, 138, 0.4) !important;
     transition: background-color 0.2s ease;
 }
