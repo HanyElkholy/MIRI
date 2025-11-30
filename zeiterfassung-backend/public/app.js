@@ -35,17 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // UI SETUP
             if (currentUser.role === 'admin') {
+                document.getElementById('nav-dashboard-button').classList.add('hidden');
                 document.getElementById('nav-live-button').classList.remove('hidden');
                 document.getElementById('user-live-terminal').classList.add('hidden');
                 document.getElementById('admin-live-dashboard').classList.remove('hidden');
                 document.getElementById('nav-group-admin').classList.remove('hidden');
                 usersList = await apiFetch('/users');
+                switchSection('live');
             } else {
+                document.getElementById('nav-dashboard-button').classList.remove('hidden');
                 document.getElementById('nav-live-button').classList.add('hidden');
                 document.getElementById('user-live-terminal').classList.remove('hidden');
                 document.getElementById('admin-live-dashboard').classList.add('hidden');
                 document.getElementById('nav-group-admin').classList.add('hidden');
                 usersList = [{ id: currentUser.id, displayName: currentUser.displayName, dailyTarget: currentUser.dailyTarget, vacationDays: currentUser.vacationDays }];
+                switchSection('dashboard');
             }
             
             initAllDropdowns();
@@ -77,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('close-mobile-menu').addEventListener('click', () => mobileMenu.classList.add('hidden'));
     
     const mobNavMap = { 
+        'dashboard': 'dashboard',
         'mob-nav-live': 'live', 
         'mob-nav-journal': 'overview', 
         'mob-nav-requests': 'requests', 
@@ -134,7 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         refreshData(name);
     }
-    const navMap = { 'overview':'overview', 'live':'live', 'requests':'requests', 'monthly':'monthly', 'account':'account', 'history':'history' };
+    window.switchSection = switchSection;
+    
+    const navMap = { 'dashboard': 'dashboard','overview':'overview', 'live':'live', 'requests':'requests', 'monthly':'monthly', 'account':'account', 'history':'history' };
     Object.keys(navMap).forEach(k => {
         const btn = document.getElementById(`nav-${k}-button`);
         if(btn) btn.addEventListener('click', () => switchSection(navMap[k]));
@@ -149,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name === 'monthly') loadMonthly();
         if (name === 'history' && currentUser.role === 'admin') loadHistory();
         if (name === 'account') loadTimeAccount();
+        if (name === 'dashboard') loadDashboard();
     }
 
     // HELPER
@@ -521,6 +529,59 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // 7. DASHBOARD LOGIC
+    async function loadDashboard() {
+        const data = await apiFetch('/dashboard');
+        if (!data) return;
+
+        // A. Stats füllen
+        document.getElementById('dash-hours-week').textContent = data.hoursWeek.toString().replace('.', ',');
+        document.getElementById('dash-next-vacation').textContent = data.nextVacation;
+
+        // B. Warnungen anzeigen
+        const alertContainer = document.getElementById('dashboard-alerts-container');
+        alertContainer.innerHTML = '';
+        
+        if (data.alerts.length > 0) {
+            alertContainer.classList.remove('hidden');
+            data.alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = "bg-red-900/20 border-l-4 border-red-500 p-4 rounded flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <div class="text-red-400 font-bold text-sm"> <i class="fas fa-exclamation-triangle mr-2"></i> Gehen vergessen am ${alert.date}</div>
+                        <div class="text-gray-400 text-xs mt-1">Eingestempelt um ${alert.start} Uhr</div>
+                    </div>
+                    <button onclick="window.openCorrection('${alert.date}', '${alert.start}', ${alert.id})" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded font-bold transition">
+                        Korrigieren
+                    </button>
+                `;
+                alertContainer.appendChild(div);
+            });
+        } else {
+            alertContainer.classList.add('hidden');
+        }
+    }
+
+    // Hilfsfunktion: Öffnet direkt das Antragsformular mit vorausgefüllten Daten
+    window.openCorrection = function(date, start, id) {
+        switchSection('requests');
+        // Datum umformen für Input (DD.MM.YYYY -> YYYY-MM-DD)
+        const parts = date.split('.');
+        const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        
+        // Formular füllen (IDs müssen in deinem HTML existieren, z.B. im Request-Formular)
+        // Hinweis: Wir nutzen hier das 'request-form' das du schon hast
+        const form = document.getElementById('request-form');
+        if(form) {
+            form.querySelector('[name="type"]').value = 'Korrektur';
+            form.querySelector('[name="date"]').value = isoDate;
+            form.querySelector('[name="newStart"]').value = start;
+            form.querySelector('[name="reason"]').value = "Gehen vergessen";
+            form.querySelector('[name="newEnd"]').focus(); // Fokus auf Ende setzen
+        }
+    };
 
     // EDIT MODAL LOGIC
     window.openEdit = function(id) {
