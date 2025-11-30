@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // LOGIN
+    // LOGIN
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('username').value;
@@ -35,20 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // UI SETUP
             if (currentUser.role === 'admin') {
+                // Admin Ansicht
                 document.getElementById('nav-dashboard-button').classList.add('hidden');
                 document.getElementById('nav-live-button').classList.remove('hidden');
                 document.getElementById('user-live-terminal').classList.add('hidden');
                 document.getElementById('admin-live-dashboard').classList.remove('hidden');
                 document.getElementById('nav-group-admin').classList.remove('hidden');
+                
                 usersList = await apiFetch('/users');
                 switchSection('live');
             } else {
+                // Mitarbeiter Ansicht
                 document.getElementById('nav-dashboard-button').classList.remove('hidden');
                 document.getElementById('nav-live-button').classList.add('hidden');
                 document.getElementById('user-live-terminal').classList.remove('hidden');
                 document.getElementById('admin-live-dashboard').classList.add('hidden');
                 document.getElementById('nav-group-admin').classList.add('hidden');
-                usersList = [{ id: currentUser.id, displayName: currentUser.displayName, dailyTarget: currentUser.dailyTarget, vacationDays: currentUser.vacationDays }];
+                
+                usersList = [{ 
+                    id: currentUser.id, 
+                    displayName: currentUser.displayName, 
+                    dailyTarget: currentUser.dailyTarget, 
+                    vacationDays: currentUser.vacationDays 
+                }];
                 switchSection('dashboard');
             }
             
@@ -56,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('tracker-page').classList.remove('hidden');
-            switchSection('overview');
         } else {
             document.getElementById('error-message').classList.remove('hidden');
         }
