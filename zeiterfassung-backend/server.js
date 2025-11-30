@@ -48,16 +48,17 @@ function getSession(req, res) {
     return sessionStore[token];
 }
 
-// --- HELPER: SYSTEMPROTOKOLL SCHREIBEN ---
-async function logAudit(customerId, actor, module, action, oldVal, newVal) {
+// --- HELPER: LOGBUCH SCHREIBEN (Mit betroffenem User) ---
+async function logAudit(customerId, actor, action, oldVal, newVal, affectedUser) {
     try {
         await pool.query(
-            `INSERT INTO audit_logs (customer_id, actor, module, action, old_value, new_value) 
+            `INSERT INTO audit_logs (customer_id, actor, action, old_value, new_value, affected_user) 
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [customerId, actor, module, action, oldVal, newVal]
+            [customerId, actor, action, oldVal, newVal, affectedUser || actor] // Fallback: Betrifft sich selbst
         );
     } catch(e) { console.error("Audit Log Fehler:", e); }
 }
+
 
 // ==================================================================
 // API ENDPUNKTE
@@ -88,8 +89,7 @@ app.post('/zes/api/v1/login', async (req, res) => {
                     displayName: user.display_name, customerId: user.customer_id 
                 };
                 
-                // Login protokollieren
-                logAudit(user.customer_id, user.display_name, 'AUTH', 'Login', '', 'Erfolgreich');
+
 
                 // Antwort ans Frontend (Alle Daten für 'currentUser' Objekt)
                 res.json({ 
@@ -106,6 +106,41 @@ app.post('/zes/api/v1/login', async (req, res) => {
             } else { res.status(401).json({ message: "Passwort falsch" }); }
         } else { res.status(401).json({ message: "Benutzer nicht gefunden" }); }
     } catch (err) { console.error(err); res.status(500).json({ error: "DB Error" }); }
+});
+
+// NEUER ENDPUNKT: PASSWORT ÄNDERN (Ohne Logout bei Fehler)
+app.put('/zes/api/v1/password', async (req, res) => {
+    const session = getSession(req, res);
+    if (!session) return; 
+
+    const { oldPassword, newPassword } = req.body;
+
+    try {
+        const result = await pool.query('SELECT password FROM users WHERE id = $1', [session.id]);
+        if (result.rows.length === 0) return res.status(404).json({ message: "User weg" });
+        
+        const currentHash = result.rows[0].password;
+
+        const match = await bcrypt.compare(oldPassword, currentHash);
+        
+        // --- HIER IST DIE ÄNDERUNG ---
+        if (!match) {
+            // Sende 200 OK, aber mit Fehlermeldung im Text
+            return res.json({ status: "error", message: "Das alte Passwort ist falsch." });
+        }
+        // -----------------------------
+
+        const newHash = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password = $1 WHERE id = $2', [newHash, session.id]);
+
+        logAudit(session.customerId, session.displayName, 'AUTH', 'Passwort geändert', '', '');
+
+        res.json({ status: "success", message: "Passwort geändert" });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Serverfehler" });
+    }
 });
 
 // 2. DASHBOARD (Stats & Alerts)
@@ -175,21 +210,46 @@ app.post('/zes/api/v1/stamp-manual', async (req, res) => {
     } catch(e) { res.status(500).json({}); }
 });
 
-// 4. HISTORY LADEN (Systemprotokoll)
+// 4. HISTORY LADEN
 app.get('/zes/api/v1/history', async (req, res) => {
     const session = getSession(req, res); 
-    if(!session || session.role !== 'admin') return res.status(403).json({});
+    if(!session) return res.status(401).json({});
     
     try {
-        const r = await pool.query(
-            `SELECT timestamp, actor, module, action, old_value as "oldValue", new_value as "newValue" 
-             FROM audit_logs 
-             WHERE customer_id = $1 
-             ORDER BY timestamp DESC LIMIT 100`, 
-            [session.customerId]
-        );
+        let query = `
+            SELECT 
+                timestamp, 
+                actor, 
+                action, 
+                old_value as "oldValue", 
+                new_value as "newValue", 
+                affected_user as "affectedUser"
+            FROM audit_logs 
+            WHERE customer_id = $1
+        `;
+        let params = [session.customerId];
+
+        // Debugging
+        console.log(`🔎 HISTORY CHECK:`);
+        console.log(`   - Wer fragt an? "${session.displayName}"`);
+        console.log(`   - Rolle: ${session.role}`);
+
+        if (session.role !== 'admin') {
+            query += ' AND (actor = $2 OR affected_user = $2)';
+            params.push(session.displayName);
+            console.log(`   - Filter aktiv für: '${session.displayName}'`);
+        }
+
+        query += ' ORDER BY timestamp DESC LIMIT 100';
+
+        const r = await pool.query(query, params);
+        console.log(`   - Gefundene Zeilen: ${r.rows.length}`);
+        
         res.json(r.rows);
-    } catch(e) { res.status(500).json({}); }
+    } catch(e) { 
+        console.error(e);
+        res.status(500).json({}); 
+    }
 });
 
 // 5. BUCHUNGEN LADEN (Journal & Live Monitor)
@@ -241,57 +301,148 @@ app.get('/zes/api/v1/requests', async (req, res) => {
     } catch(e){ res.status(500).json({}); }
 });
 
-// 7. ANTRAG ERSTELLEN
+
+// 5. ANTRAG ERSTELLEN (Mit Logging)
 app.post('/zes/api/v1/requests', async (req, res) => {
-    const s = getSession(req, res); if(!s) return;
+    const s = getSession(req, res); 
+    if (!s) return;
+    
     const { date, newStart, newEnd, reason, type } = req.body;
-    try {
+
+    try { 
         await pool.query(
             `INSERT INTO requests (user_id, date, new_start, new_end, reason, status, type) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [s.id, date, newStart, newEnd, reason, 'pending', type || 'Sonstiges']
         );
-        res.json({status:"success"}); 
-    } catch(e){ res.status(500).json({}); }
+
+        // NEU: Wir protokollieren, dass Mehmet (s.displayName) etwas getan hat!
+        // Akteur: Mehmet, Betroffener: Mehmet
+        logAudit(s.customerId, s.displayName, 'Antrag', 'Erstellt', type || 'Sonstiges', 'Offen', s.displayName);
+
+        res.json({ status: "success" }); 
+    } catch (err) { 
+        console.error(err);
+        res.status(500).json({ error: "Fehler beim Speichern" }); 
+    }
 });
 
-// 8. BUCHUNG BEARBEITEN (Admin)
+// 1. BENACHRICHTIGUNGEN (Status abrufen) - UPDATED
+app.get('/zes/api/v1/notifications', async (req, res) => {
+    const s = getSession(req, res); if (!s) return;
+    
+    try {
+        let result = { items: [] };
+
+        if (s.role === 'admin') {
+            // ADMIN: Hole Details der offenen Anträge (Name, Typ, Datum)
+            // Wir joinen mit 'users', um den Namen des Antragstellers zu bekommen
+            const r = await pool.query(
+                `SELECT r.id, r.type, TO_CHAR(r.date, 'DD.MM.YYYY') as date, u.display_name as user 
+                 FROM requests r
+                 JOIN users u ON r.user_id = u.id
+                 WHERE u.customer_id = $1 AND r.status = 'pending'
+                 ORDER BY r.id DESC`,
+                [s.customerId]
+            );
+            result.items = r.rows;
+            result.type = 'admin_open_requests';
+        } else {
+            // USER: Anträge, die fertig sind, aber noch nicht gesehen wurden
+            // Wir holen auch das Datum dazu
+            const r = await pool.query(
+                `SELECT id, status, type, reason, TO_CHAR(date, 'DD.MM.YYYY') as date 
+                 FROM requests 
+                 WHERE user_id = $1 AND status != 'pending' AND user_seen = FALSE
+                 ORDER BY id DESC`,
+                [s.id]
+            );
+            result.items = r.rows;
+            result.type = 'user_updates';
+        }
+        
+        // Count berechnen wir einfach aus der Länge der Liste
+        result.count = result.items.length;
+
+        res.json(result);
+    } catch (e) { res.status(500).json({ error: "DB Error" }); }
+});
+
+// 2. Als gelesen markieren (Nur für User relevant)
+app.post('/zes/api/v1/notifications/read', async (req, res) => {
+    const s = getSession(req, res); if (!s) return;
+    try {
+        // Setze alle fertigen Anträge dieses Users auf 'seen'
+        await pool.query(
+            `UPDATE requests SET user_seen = TRUE 
+             WHERE user_id = $1 AND status != 'pending'`,
+            [s.id]
+        );
+        res.json({ status: "success" });
+    } catch (e) { res.status(500).json({}); }
+});
+
 app.put('/zes/api/v1/bookings/:id', async (req, res) => {
-    const s = getSession(req, res); if(!s || s.role !== 'admin') return res.status(403).json({});
+    const s = getSession(req, res); 
+    if(!s || s.role !== 'admin') return res.status(403).json({});
+    
     const { start, end, remarks } = req.body;
     try {
-        const old = await pool.query('SELECT * FROM bookings WHERE id=$1', [req.params.id]);
-        const oldB = old.rows[0];
+        // 1. Alte Daten UND den Namen des Besitzers holen (JOIN)
+        const oldRes = await pool.query(
+            `SELECT b.*, u.display_name as username 
+             FROM bookings b 
+             JOIN users u ON b.user_id = u.id 
+             WHERE b.id = $1`, 
+            [req.params.id]
+        );
         
-        // Loggen im Systemprotokoll
-        logAudit(s.customerId, s.displayName, 'BOOKING', 'Edit', `${oldB.start_time}-${oldB.end_time}`, `${start}-${end}`);
+        if(oldRes.rows.length === 0) return res.status(404).json({message:"Not found"});
+        const oldB = oldRes.rows[0];
         
-        // JSON History im Eintrag
+        // 2. Loggen: Admin ändert Daten von 'oldB.username'
+        logAudit(s.customerId, s.displayName, 'Bearbeitet', `${oldB.start_time}-${oldB.end_time}`, `${start}-${end}`, oldB.username);
+        
+        // 3. Update (wie vorher)
         let hArr = oldB.history || [];
         hArr.push({ changedAt: new Date(), changedBy: s.displayName, type: "Korrektur", oldStart: oldB.start_time, oldEnd: oldB.end_time });
         
-        await pool.query(
-            `UPDATE bookings SET start_time=$1, end_time=$2, remarks=$3, history=$4, is_edited=TRUE WHERE id=$5`, 
-            [start, end, remarks, JSON.stringify(hArr), req.params.id]
-        );
+        await pool.query('UPDATE bookings SET start_time=$1, end_time=$2, remarks=$3, history=$4, is_edited=TRUE WHERE id=$5', [start, end, remarks, JSON.stringify(hArr), req.params.id]);
         res.json({status:"success"});
-    } catch(e){ res.status(500).json({}); }
+    } catch(e){ console.error(e); res.status(500).json({}); }
 });
 
 // 9. ANTRAG GENEHMIGEN (Mit intelligenter Suche)
+// 6. ANTRAG BEARBEITEN (Admin -> Mehmet)
 app.put('/zes/api/v1/requests/:id', async (req, res) => {
-    const s = getSession(req, res); if(!s || s.role !== 'admin') return res.status(403).json({});
+    const s = getSession(req, res); 
+    if(!s || s.role !== 'admin') return res.status(403).json({});
+    
     const { status } = req.body; 
     const reqId = req.params.id;
 
     try {
-        await pool.query('UPDATE requests SET status=$1 WHERE id=$2', [status, reqId]);
-        logAudit(s.customerId, s.displayName, 'REQUEST', status, `Req #${reqId}`, '');
+        // 1. ZUERST: Wem gehört der Antrag? (Namen holen!)
+        const reqRes = await pool.query(
+            `SELECT r.*, u.display_name as username 
+             FROM requests r 
+             JOIN users u ON r.user_id = u.id 
+             WHERE r.id = $1`, 
+            [reqId]
+        );
         
+        if (reqRes.rows.length === 0) return res.status(404).json({ message: "Antrag weg" });
+        const reqData = reqRes.rows[0];
+
+        // 2. Status updaten
+        await pool.query('UPDATE requests SET status = $1 WHERE id = $2', [status, reqId]);
+
+        // 3. LOGGEN: Akteur = Luigi (Session), Betroffener = Mehmet (reqData.username)
+        const actionText = status === 'approved' ? 'Genehmigt' : 'Abgelehnt';
+        logAudit(s.customerId, s.displayName, `Antrag (${reqData.type})`, reqData.status, status, reqData.username);
+        
+        // 4. Buchung anpassen (nur bei Genehmigung)
         if (status === 'approved') {
-            const reqData = (await pool.query('SELECT * FROM requests WHERE id=$1', [reqId])).rows[0];
-            
-            // Suche offene oder passende Buchung am selben Tag
             const bRes = await pool.query(
                 `SELECT * FROM bookings WHERE user_id=$1 AND date=$2::date ORDER BY end_time ASC NULLS FIRST LIMIT 1`, 
                 [reqData.user_id, reqData.date]
@@ -312,12 +463,15 @@ app.put('/zes/api/v1/requests/:id', async (req, res) => {
                 await pool.query(
                     `INSERT INTO bookings (user_id, date, start_time, end_time, type, remarks, history, is_edited) 
                      VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE)`, 
-                    [reqData.user_id, reqData.date, reqData.new_start, reqData.new_end, reqData.type || 'Korrektur', `Nachtrag: ${reqData.reason}`, JSON.stringify([hist])]
+                    [reqData.user_id, reqData.date, reqData.new_start, reqData.new_end, 'valid', `Nachtrag: ${reqData.reason}`, JSON.stringify([hist])]
                 );
             }
         }
         res.json({status:"success"});
-    } catch(e) { res.status(500).json({}); }
+    } catch(e) { 
+        console.error(e);
+        res.status(500).json({}); 
+    }
 });
 
 // 10. USER LISTE LADEN

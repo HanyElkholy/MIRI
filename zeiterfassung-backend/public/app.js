@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // LOGIN
-    // LOGIN
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('username').value;
@@ -63,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             initAllDropdowns();
+            checkNotifications(); 
 
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('tracker-page').classList.remove('hidden');
@@ -76,17 +76,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- MOBILE MENU LOGIC ---
     const mobileMenu = document.getElementById('mobile-menu-overlay');
+    
     document.getElementById('mobile-menu-btn').addEventListener('click', () => {
         mobileMenu.classList.remove('hidden');
-        // Admin Links prüfen
-        if(currentUser && currentUser.role === 'admin') {
-            document.getElementById('mob-nav-live').classList.remove('hidden');
-            document.getElementById('mob-nav-history').classList.remove('hidden');
-        } else {
-            document.getElementById('mob-nav-live').classList.add('hidden');
-            document.getElementById('mob-nav-history').classList.add('hidden');
+        
+        // 1. Aktivitäten (History) IMMER anzeigen (für alle)
+        // Wir entfernen die 'hidden' Klasse bedingungslos
+        const historyBtn = document.getElementById('mob-nav-history');
+        if(historyBtn) historyBtn.classList.remove('hidden');
+
+        // 2. Live-Monitor NUR für Admins anzeigen
+        const liveBtn = document.getElementById('mob-nav-live');
+        if(liveBtn) {
+            if(currentUser && currentUser.role === 'admin') {
+                liveBtn.classList.remove('hidden');
+            } else {
+                liveBtn.classList.add('hidden');
+            }
         }
     });
+    
     document.getElementById('close-mobile-menu').addEventListener('click', () => mobileMenu.classList.add('hidden'));
     
     const mobNavMap = { 
@@ -163,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name === 'live') loadLiveMonitor();
         if (name === 'requests') loadRequests();
         if (name === 'monthly') loadMonthly();
-        if (name === 'history' && currentUser.role === 'admin') loadHistory();
+        if (name === 'history') loadHistory();
         if (name === 'account') loadTimeAccount();
         if (name === 'dashboard') loadDashboard();
     }
@@ -517,27 +526,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 6. HISTORY
-    function loadHistory() {
-        apiFetch('/history').then(log => {
-            const tbody = document.getElementById('audit-log-body');
-            tbody.innerHTML = '';
-            if (!log || log.length === 0) return;
-            log.forEach(entry => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-blue-900/20 border-b border-ahmtimus transition";
-                tr.innerHTML = `
-                    <td class="px-6 py-2 text-gray-500 text-xs">${new Date(entry.timestamp).toLocaleString()}</td>
-                    <td class="px-6 py-2 font-bold text-gray-300">${entry.actor}</td>
-                    <td class="px-6 py-2 text-xs text-blue-400 uppercase">${entry.module || '-'}</td>
-                    <td class="px-6 py-2 text-xs">${entry.action}</td>
-                    <td class="px-6 py-2 text-xs text-red-300 font-mono">${entry.oldValue || '-'}</td>
-                    <td class="px-6 py-2 text-xs text-green-300 font-mono">${entry.newValue || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
+    // 6. HISTORY (AKTIVITÄTEN) - Mit "Wer -> Wen" Logik
+     function loadHistory() {
+    apiFetch('/history').then(log => {
+        const tbody = document.getElementById('audit-log-body');
+        tbody.innerHTML = '';
+        
+        if (!log || log.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Keine Aktivitäten.</td></tr>';
+            return;
+        }
+
+        log.forEach(entry => {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-blue-900/20 border-b border-ahmtimus transition";
+            
+            // Datum formatieren
+            const dateStr = new Date(entry.timestamp).toLocaleString('de-DE', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+
+            // --- NEU: ANZEIGE "AKTEUR -> BETROFFENER" ---
+            let whoDisplay = entry.actor;
+            
+            // Wenn es einen betroffenen User gibt UND der anders ist als der Täter:
+            if (entry.affectedUser && entry.affectedUser !== entry.actor) {
+                // Wir fügen einen Pfeil und den zweiten Namen hinzu
+                whoDisplay += ` <i class="fas fa-arrow-right text-gray-500 mx-1 text-[10px]"></i> <span class="text-white">${entry.affectedUser}</span>`;
+            }
+            // ---------------------------------------------
+
+            tr.innerHTML = `
+                <td class="px-6 py-2 text-gray-500 text-xs whitespace-nowrap">${dateStr}</td>
+                <td class="px-6 py-2 font-bold text-gray-300">${whoDisplay}</td> <td class="px-6 py-2 text-xs font-bold text-blue-300">${entry.action}</td>
+                <td class="px-6 py-2 text-xs text-red-300 font-mono break-all">${entry.oldValue || '-'}</td>
+                <td class="px-6 py-2 text-xs text-green-300 font-mono break-all">${entry.newValue || '-'}</td>
+            `;
+            tbody.appendChild(tr);
         });
-    }
+    });
+}
 
     // 7. DASHBOARD LOGIC
     async function loadDashboard() {
@@ -623,4 +649,180 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(res.message || "Fehler beim Speichern");
         }
     };
+    // --- PASSWORT ÄNDERN LOGIK ---
+
+    // 1. Modal öffnen
+    const pwModal = document.getElementById('password-modal');
+    const pwBtn = document.getElementById('nav-password-button');
+    const pwClose = document.getElementById('close-pw-modal');
+    const pwError = document.getElementById('pw-error');
+
+    if (pwBtn) {
+        pwBtn.addEventListener('click', () => {
+            // Formular leeren beim Öffnen
+            document.getElementById('password-form').reset();
+            pwError.classList.add('hidden');
+            pwModal.classList.remove('hidden');
+        });
+    }
+
+    // 2. Modal schließen
+    if (pwClose) {
+        pwClose.addEventListener('click', () => {
+            pwModal.classList.add('hidden');
+        });
+    }
+
+    // 3. Speichern
+    const pwForm = document.getElementById('password-form');
+    if (pwForm) {
+        pwForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const oldPw = document.getElementById('pw-old').value;
+            const newPw = document.getElementById('pw-new').value;
+            const confirmPw = document.getElementById('pw-confirm').value;
+
+            // Validierung im Frontend
+            if (newPw !== confirmPw) {
+                pwError.textContent = "Die neuen Passwörter stimmen nicht überein.";
+                pwError.classList.remove('hidden');
+                return;
+            }
+
+            // Senden an Server
+            const res = await apiFetch('/password', 'PUT', { 
+                oldPassword: oldPw, 
+                newPassword: newPw 
+            });
+
+            if (res && res.status === 'success') {
+                alert("Passwort erfolgreich geändert!");
+                pwModal.classList.add('hidden');
+            } else {
+                pwError.textContent = res ? res.message : "Fehler beim Speichern.";
+                pwError.classList.remove('hidden');
+            }
+        });
+    }
+
+    // =======================================================
+    // 8. BENACHRICHTIGUNGEN (OPTIMIERT)
+    // =======================================================
+    
+    const notifBtn = document.getElementById('notification-btn');
+    const notifBadge = document.getElementById('notification-badge');
+    const notifDropdown = document.getElementById('notification-dropdown');
+    const notifList = document.getElementById('notification-list');
+    let notifData = null; 
+
+    // Scrollbar-Klasse zum Dropdown-Container hinzufügen (falls noch nicht im HTML)
+    if(notifList) notifList.className = "text-sm text-gray-300 space-y-2 max-h-64 overflow-y-auto custom-scroll pr-1";
+
+    // A. Polling
+    setInterval(checkNotifications, 30000);
+    checkNotifications(); // Auch direkt beim Start
+
+    async function checkNotifications() {
+        if (!currentUser) return;
+        const data = await apiFetch('/notifications');
+        if (!data) return;
+        
+        notifData = data; 
+
+        if (data.count > 0) {
+            notifBadge.textContent = data.count;
+            notifBadge.classList.remove('hidden');
+            notifBtn.classList.add('text-white');
+        } else {
+            notifBadge.classList.add('hidden');
+            notifBtn.classList.remove('text-white');
+            // Wir schließen das Dropdown nicht automatisch, falls der User es gerade offen hat
+        }
+    }
+
+    // B. Klick auf die Glocke (Für ALLE gleich: Dropdown öffnen)
+    if (notifBtn) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Wichtig, damit window-click es nicht sofort schließt
+            if (!notifData || notifData.count === 0) return;
+            
+            notifDropdown.classList.toggle('hidden');
+            renderNotifications();
+        });
+    }
+
+    // C. Liste rendern (Unterscheidung Admin / User)
+    function renderNotifications() {
+        notifList.innerHTML = '';
+        
+        if (!notifData || !notifData.items) return;
+
+        notifData.items.forEach(item => {
+            const div = document.createElement('div');
+            // Styling: Hover-Effekt und Cursor für Klickbarkeit
+            div.className = "p-3 rounded border-l-4 mb-1 cursor-pointer hover:bg-white/10 transition shadow-sm";
+            
+            // Klick auf das Item -> Weiterleitung zu Anträge
+            div.onclick = () => {
+                switchSection('requests');
+                notifDropdown.classList.add('hidden');
+                // Optional: Automatisch filtern (bei Admin auf 'pending')
+                if(currentUser.role === 'admin') {
+                    document.getElementById('req-filter-status').value = 'pending';
+                    refreshData('requests');
+                }
+            };
+
+            if (currentUser.role === 'admin') {
+                // --- ADMIN ANSICHT ---
+                // Zeigt: Wer hat was beantragt?
+                div.classList.add('bg-[#0a192f]', 'border-yellow-500');
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="font-bold text-white text-xs">${item.user}</div>
+                        <div class="text-[10px] text-gray-400">${item.date}</div>
+                    </div>
+                    <div class="text-yellow-500 text-xs font-bold mt-1">Neuer Antrag: ${item.type}</div>
+                    <div class="text-[10px] text-gray-500 mt-1">Klicken zum Bearbeiten</div>
+                `;
+            } else {
+                // --- USER ANSICHT ---
+                // Zeigt: Status-Update (Datum und Ergebnis)
+                const isOk = item.status === 'approved';
+                const colorClass = isOk ? 'border-green-500' : 'border-red-500';
+                const statusText = isOk ? 'Genehmigt' : 'Abgelehnt';
+                const statusColor = isOk ? 'text-green-400' : 'text-red-400';
+                const icon = isOk ? 'fa-check' : 'fa-times';
+
+                div.classList.add('bg-[#0a192f]', colorClass);
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="font-bold ${statusColor} text-xs"><i class="fas ${icon} mr-1"></i> ${statusText}</div>
+                        <div class="text-[10px] text-gray-400">${item.date}</div>
+                    </div>
+                    <div class="text-white text-xs mt-1 font-bold">${item.type}</div>
+                    <div class="text-[10px] text-gray-400 italic truncate">"${item.reason}"</div>
+                `;
+            }
+            notifList.appendChild(div);
+        });
+    }
+
+    // D. "Gelesen" Button
+    document.getElementById('notification-clear-btn').addEventListener('click', async (e) => {
+        e.stopPropagation(); // Dropdown offen lassen kurz
+        if(currentUser.role !== 'admin') {
+            // Nur User müssen "gelesen" markieren, Admin sieht eh immer den Live-Status
+            await apiFetch('/notifications/read', 'POST', {});
+        }
+        notifDropdown.classList.add('hidden');
+        checkNotifications(); 
+    });
+
+    // Schließen bei Klick außerhalb
+    window.addEventListener('click', (e) => {
+        if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
 });
