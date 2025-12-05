@@ -35,17 +35,37 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// --- SESSION STORE (Im Arbeitsspeicher) ---
-let sessionStore = {};
+// --- SESSION STORE (Datenbank-basiert für Cluster) ---
+// Wir brauchen keine globale Variable mehr!    
 
-function getSession(req, res) {
+async function getSession(req, res) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token || !sessionStore[token]) {
-        if(res) res.status(401).json({ message: "Sitzung abgelaufen oder ungültig" });
+
+    if (!token) {
+        if(res) res.status(401).json({ message: "Kein Token gefunden" });
         return null;
     }
-    return sessionStore[token];
+
+    try {
+        // Suche Token in der DB und prüfe, ob er noch gültig ist (z.B. 30 Tage)
+        const result = await pool.query(
+            `SELECT user_data FROM user_sessions 
+             WHERE token = $1 AND expires_at > NOW()`, 
+            [token]
+        );
+
+        if (result.rows.length > 0) {
+            return result.rows[0].user_data; // Das User-Objekt aus der DB
+        } else {
+            if(res) res.status(401).json({ message: "Sitzung abgelaufen" });
+            return null;
+        }
+    } catch (e) {
+        console.error("Session Check Error:", e);
+        if(res) res.status(500).json({ message: "Session Error" });
+        return null;
+    }
 }
 
 // --- HELPER: LOGBUCH SCHREIBEN (Mit betroffenem User) ---
@@ -83,11 +103,18 @@ app.post('/zes/api/v1/login', async (req, res) => {
             
             if (match) {
                 const token = crypto.randomBytes(32).toString('hex');
-                // Session speichern
-                sessionStore[token] = { 
+               // User Daten objekt vorbereiten
+                const sessionUser = { 
                     id: user.id, username: user.username, role: user.role, 
                     displayName: user.display_name, customerId: user.customer_id 
                 };
+
+                // In Datenbank speichern (Gültig für 30 Tage)
+                await pool.query(
+                    `INSERT INTO user_sessions (token, user_data, expires_at) 
+                     VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
+                    [token, JSON.stringify(sessionUser)]
+                );
                 
 
 
@@ -110,7 +137,7 @@ app.post('/zes/api/v1/login', async (req, res) => {
 
 // NEUER ENDPUNKT: PASSWORT ÄNDERN (Ohne Logout bei Fehler)
 app.put('/zes/api/v1/password', async (req, res) => {
-    const session = getSession(req, res);
+    const session = await getSession(req, res);
     if (!session) return; 
 
     const { oldPassword, newPassword } = req.body;
@@ -145,7 +172,7 @@ app.put('/zes/api/v1/password', async (req, res) => {
 
 // 2. DASHBOARD (Stats & Alerts)
 app.get('/zes/api/v1/dashboard', async (req, res) => {
-    const session = getSession(req, res); if (!session) return;
+    const session = await getSession(req, res); if (!session) return;
     try {
         // Warnungen: Offene Buchungen, die älter als HEUTE sind
         const alerts = await pool.query(
@@ -182,7 +209,7 @@ app.get('/zes/api/v1/dashboard', async (req, res) => {
 
 // 3. MANUELLES STEMPELN (Web Button)
 app.post('/zes/api/v1/stamp-manual', async (req, res) => {
-    const session = getSession(req, res); if (!session) return;
+    const session =  await getSession(req, res); if (!session) return;
     const { action } = req.body; // 'start' oder 'end'
     
     // Zeitstempel generieren (Deutsche Zeit)
@@ -212,7 +239,7 @@ app.post('/zes/api/v1/stamp-manual', async (req, res) => {
 
 // 4. HISTORY LADEN
 app.get('/zes/api/v1/history', async (req, res) => {
-    const session = getSession(req, res); 
+    const session = await getSession(req, res); 
     if(!session) return res.status(401).json({});
     
     try {
@@ -254,7 +281,7 @@ app.get('/zes/api/v1/history', async (req, res) => {
 
 // 5. BUCHUNGEN LADEN (Journal & Live Monitor)
 app.get('/zes/api/v1/bookings', async (req, res) => {
-    const session = getSession(req, res); if (!session) return;
+    const session = await getSession(req, res); if (!session) return;
     try {
         // Basis-Query für die Firma
         let q = `
@@ -282,7 +309,7 @@ app.get('/zes/api/v1/bookings', async (req, res) => {
 
 // 6. ANTRÄGE LADEN
 app.get('/zes/api/v1/requests', async (req, res) => {
-    const s = getSession(req, res); if(!s) return;
+    const s = await getSession(req, res); if(!s) return;
     try {
         let q = `
             SELECT id, user_id as "userId", 
@@ -304,7 +331,7 @@ app.get('/zes/api/v1/requests', async (req, res) => {
 
 // 5. ANTRAG ERSTELLEN (Mit Logging)
 app.post('/zes/api/v1/requests', async (req, res) => {
-    const s = getSession(req, res); 
+    const s = await getSession(req, res); 
     if (!s) return;
     
     const { date, newStart, newEnd, reason, type } = req.body;
@@ -329,7 +356,7 @@ app.post('/zes/api/v1/requests', async (req, res) => {
 
 // 1. BENACHRICHTIGUNGEN (Status abrufen) - UPDATED
 app.get('/zes/api/v1/notifications', async (req, res) => {
-    const s = getSession(req, res); if (!s) return;
+    const s = await getSession(req, res); if (!s) return;
     
     try {
         let result = { items: [] };
@@ -370,7 +397,7 @@ app.get('/zes/api/v1/notifications', async (req, res) => {
 
 // 2. Als gelesen markieren (Nur für User relevant)
 app.post('/zes/api/v1/notifications/read', async (req, res) => {
-    const s = getSession(req, res); if (!s) return;
+    const s = await getSession(req, res); if (!s) return;
     try {
         // Setze alle fertigen Anträge dieses Users auf 'seen'
         await pool.query(
@@ -383,7 +410,7 @@ app.post('/zes/api/v1/notifications/read', async (req, res) => {
 });
 
 app.put('/zes/api/v1/bookings/:id', async (req, res) => {
-    const s = getSession(req, res); 
+    const s = await getSession(req, res); 
     if(!s || s.role !== 'admin') return res.status(403).json({});
     
     const { start, end, remarks } = req.body;
@@ -415,7 +442,7 @@ app.put('/zes/api/v1/bookings/:id', async (req, res) => {
 // 9. ANTRAG GENEHMIGEN (Mit intelligenter Suche)
 // 6. ANTRAG BEARBEITEN (Admin -> Mehmet)
 app.put('/zes/api/v1/requests/:id', async (req, res) => {
-    const s = getSession(req, res); 
+    const s = await getSession(req, res); 
     if(!s || s.role !== 'admin') return res.status(403).json({});
     
     const { status } = req.body; 
@@ -476,7 +503,7 @@ app.put('/zes/api/v1/requests/:id', async (req, res) => {
 
 // 10. USER LISTE LADEN
 app.get('/zes/api/v1/users', async (req, res) => {
-    const s = getSession(req, res); if(!s) return;
+    const s = await getSession(req, res); if(!s) return;
     try {
         const r = await pool.query(
             `SELECT id, display_name as "displayName", role, daily_target as "dailyTarget", vacation_days as "vacationDays" 
