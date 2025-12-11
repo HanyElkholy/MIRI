@@ -1,0 +1,45 @@
+services:
+  # 1. Die Datenbank
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - TZ=Europe/Berlin
+      - POSTGRES_USER=zes_admin
+      - POSTGRES_PASSWORD=meinGeheimesLokalesPassword123
+      - POSTGRES_DB=zes_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  # 2. Dein Backend (Node.js)
+  api:
+    build: ./backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - TZ=Europe/Berlin
+      - DB_HOST=db
+      - DB_USER=zes_admin
+      - DB_PASSWORD=meinGeheimesLokalesPassword123
+      - DB_NAME=zes_db
+      - PORT=3001
+      - JWT_SECRET=supergeheim
+    depends_on:
+      - db
+
+  # 3. Der Webserver (Nginx)
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+
+volumes:
+  db_data:
