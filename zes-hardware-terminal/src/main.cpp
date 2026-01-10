@@ -2,7 +2,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h> // <--- NEU: Notwendig für HTTPS
-
+#include "mbedtls/md.h"
 #include <SPI.h>
 #include <MFRC522.h>
 #include <ArduinoJson.h> 
@@ -10,6 +10,9 @@
 #include <SD.h>
 #include <FS.h>
 
+// ----------------------------------------
+const char* device_secret = "MEIN_GEHEIMES_DEVICE_PASSWORT";
+// ----------------------------------------
 
 // Ein einfaches Passwort für die Verschlüsselung
 const String SD_SECRET = "AHMTIMUS_SECURE_KEY_2025"; 
@@ -42,6 +45,8 @@ const char* serverName = "https://ahmtimus.com/zes/api/v1/stamp";
 // --- Pin-Definition für MFRC522 ---
 #define MFRC522_RST_PIN  4
 #define MFRC522_SS_PIN   5  
+
+
 
 // --- Globale Objekte ---
 MFRC522 mfrc522(MFRC522_SS_PIN, MFRC522_RST_PIN); 
@@ -220,12 +225,35 @@ void sendStampToServer(String cardId) {
 
     http.addHeader("Content-Type", "application/json"); 
 
+    // --- SICHERHEITS LOGIK ---
+    // Zeitstempel holen (wichtig gegen Replay Attacks)
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+        Serial.println("Konnte Zeit nicht holen!");
+        return;
+    }
+    time_t now;
+    time(&now); 
+    
+    String timestamp = String((unsigned long)now);
+    String nonce = String(random(1000000)); // Zufallszahl
+
+    // Signatur erstellen: cardId + timestamp + nonce
+    String payloadData = cardId + ":" + timestamp + ":" + nonce;
+    String signature = createHMAC(payloadData, device_secret);
+
+    // JSON bauen
     JsonDocument doc;
     doc["cardId"] = cardId;
+    doc["timestamp"] = timestamp;
+    doc["nonce"] = nonce;
+    doc["signature"] = signature;
+
     String jsonPayload;
     serializeJson(doc, jsonPayload);
+    // --------------------------
 
-    Serial.print("Sende JSON an Server: ");
+    Serial.print("Sende Secure JSON: ");
     Serial.println(jsonPayload);
 
     int httpResponseCode = http.POST(jsonPayload);
@@ -289,6 +317,25 @@ void sendStampToServer(String cardId) {
   displayLayout(); 
 }
 
+String createHMAC(String data, const char* key) {
+    byte hmacResult[32];
+    mbedtls_md_context_t ctx;
+    mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
+    
+    mbedtls_md_init(&ctx);
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 1);
+    mbedtls_md_hmac_starts(&ctx, (const unsigned char *) key, strlen(key));
+    mbedtls_md_hmac_update(&ctx, (const unsigned char *) data.c_str(), data.length());
+    mbedtls_md_hmac_finish(&ctx, hmacResult);
+    mbedtls_md_free(&ctx);
+    
+    String hash = "";
+    for(int i=0; i<32; i++){
+        if(hmacResult[i] < 16) hash += "0";
+        hash += String(hmacResult[i], HEX);
+    }
+    return hash;
+}
 
 // SETUP
 void setup() {

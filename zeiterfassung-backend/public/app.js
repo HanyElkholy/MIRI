@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let bookingsList = [];
     let requestsList = [];
     
-    // API CONFIG
+    // API KONFIGURATION
     const API_URL = '/zes/api/v1'; 
 
     async function apiFetch(endpoint, method = 'GET', body = null, isFormData = false) {
@@ -16,12 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (body) config.body = isFormData ? body : JSON.stringify(body);
         try {
             const res = await fetch(`${API_URL}${endpoint}`, config);
-            if (!res.ok) { if(res.status===401) logout(); return null; }
+            if (!res.ok) { 
+                if(res.status===401) logout(); 
+                return null; 
+            }
             return await res.json();
         } catch (err) { console.error(err); return null; }
     }
 
-    // LOGIN
+    // LOGIN LOGIK
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('username').value;
@@ -31,27 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.status === "success") {
             currentUser = { ...data.user, token: data.token };
             document.getElementById('user-display-name').textContent = currentUser.displayName;
-            document.getElementById('client-name-display').textContent = currentUser.clientName || "McKensy"; 
+            document.getElementById('client-name-display').textContent = currentUser.clientName || "System"; 
             
-            // UI SETUP
+            // UI Setup nach Rolle
             if (currentUser.role === 'admin') {
-                // Admin Ansicht
                 document.getElementById('nav-dashboard-button').classList.add('hidden');
                 document.getElementById('nav-live-button').classList.remove('hidden');
                 document.getElementById('user-live-terminal').classList.add('hidden');
                 document.getElementById('admin-live-dashboard').classList.remove('hidden');
-                document.getElementById('nav-group-admin').classList.remove('hidden');
-                
                 usersList = await apiFetch('/users');
                 switchSection('live');
             } else {
-                // Mitarbeiter Ansicht
                 document.getElementById('nav-dashboard-button').classList.remove('hidden');
                 document.getElementById('nav-live-button').classList.add('hidden');
                 document.getElementById('user-live-terminal').classList.remove('hidden');
                 document.getElementById('admin-live-dashboard').classList.add('hidden');
-                document.getElementById('nav-group-admin').classList.add('hidden');
-                
                 usersList = [{ 
                     id: currentUser.id, 
                     displayName: currentUser.displayName, 
@@ -71,28 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('logout-button').addEventListener('click', () => location.reload());
+    document.getElementById('logout-button').addEventListener('click', () => logout());
     function logout() { currentUser = null; location.reload(); }
 
-    // --- MOBILE MENU LOGIC ---
+    // --- MOBILE MENU ---
     const mobileMenu = document.getElementById('mobile-menu-overlay');
-    
     document.getElementById('mobile-menu-btn').addEventListener('click', () => {
         mobileMenu.classList.remove('hidden');
-        
-        // 1. Aktivitäten (History) IMMER anzeigen (für alle)
-        // Wir entfernen die 'hidden' Klasse bedingungslos
-        const historyBtn = document.getElementById('mob-nav-history');
-        if(historyBtn) historyBtn.classList.remove('hidden');
-
-        // 2. Live-Monitor NUR für Admins anzeigen
         const liveBtn = document.getElementById('mob-nav-live');
         if(liveBtn) {
-            if(currentUser && currentUser.role === 'admin') {
-                liveBtn.classList.remove('hidden');
-            } else {
-                liveBtn.classList.add('hidden');
-            }
+            if(currentUser && currentUser.role === 'admin') liveBtn.classList.remove('hidden');
+            else liveBtn.classList.add('hidden');
         }
     });
     
@@ -116,45 +102,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('mob-logout').addEventListener('click', () => logout());
 
-    // --- CENTRAL DROPDOWN INIT ---
+    // --- DROPDOWNS INITIALISIEREN ---
     function initAllDropdowns() {
-        const selects = [
-            'overview-user-select', 
-            'req-filter-user', 
-            'request-target-user', 
-            'cal-filter-user', 
-            'account-user-select'
-        ];
-
+        const selects = ['overview-user-select', 'req-filter-user', 'request-target-user', 'cal-filter-user', 'account-user-select'];
         selects.forEach(id => {
             const el = document.getElementById(id);
             if(!el) return;
-            el.innerHTML = '<option value="" disabled selected>Bitte auswählen...</option>';
+            el.innerHTML = '<option value="" disabled selected>Bitte wählen...</option>';
             usersList.filter(u => u.role !== 'admin').forEach(u => {
                 el.add(new Option(u.displayName, u.id));
             });
         });
 
-        document.getElementById('cal-filter-month').value = new Date().getMonth();
-        document.getElementById('cal-filter-year').value = new Date().getFullYear();
+        const monthSelect = document.getElementById('cal-filter-month');
+        if(monthSelect) {
+            monthSelect.innerHTML = '';
+            ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'].forEach((m, i) => {
+                monthSelect.add(new Option(m, i));
+            });
+            monthSelect.value = new Date().getMonth();
+        }
+
+        const yearSelect = document.getElementById('cal-filter-year');
+        if(yearSelect) {
+            yearSelect.innerHTML = '';
+            [2024, 2025, 2026, 2027].forEach(y => yearSelect.add(new Option(y, y)));
+            yearSelect.value = new Date().getFullYear();
+        }
+
+        // Standard Zeitraum: Monatserster bis Heute
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const startInp = document.getElementById('filter-date-start');
+        const endInp = document.getElementById('filter-date-end');
+        if(startInp) startInp.value = firstDay.toISOString().split('T')[0];
+        if(endInp) endInp.value = today.toISOString().split('T')[0];
     }
 
     // --- NAVIGATION ---
     function switchSection(name) {
         document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.dropdown-link').forEach(el => el.classList.remove('bg-ahmtimus-blue', 'text-white'));
-
         const contentEl = document.getElementById(`content-${name}`);
         if(contentEl) contentEl.classList.remove('hidden');
-        
-        if(name === 'overview') document.getElementById('nav-overview-button').classList.add('active');
-        if(name === 'live') document.getElementById('nav-live-button').classList.add('active');
-        if(name === 'monthly') document.getElementById('nav-monthly-button').classList.add('bg-ahmtimus-blue', 'text-white');
-        if(name === 'requests') document.getElementById('nav-requests-button').classList.add('bg-ahmtimus-blue', 'text-white');
-        if(name === 'account') document.getElementById('nav-account-button').classList.add('bg-ahmtimus-blue', 'text-white');
-        if(name === 'history') document.getElementById('nav-history-button').classList.add('text-white');
-
         refreshData(name);
     }
     window.switchSection = switchSection;
@@ -177,63 +166,75 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name === 'dashboard') loadDashboard();
     }
 
-    // HELPER
+    // HELPER FUNKTIONEN
     function getUserName(id) { const u = usersList.find(u => u.id === id); return u ? u.displayName : `Pers.-Nr. ${id}`; }
     function timeToDec(t) { if(!t) return 0; const [h,m] = t.split(':').map(Number); return h + m/60; }
     function decToTime(d) { const h = Math.floor(Math.abs(d)); const m = Math.round((Math.abs(d)-h)*60); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
     function calcPause(brutto) { return brutto > 9 ? 0.75 : (brutto > 6 ? 0.5 : 0); }
     function getUserTarget(uid) { const u = usersList.find(x=>x.id===uid); return u ? (u.dailyTarget||8.0) : 8.0; }
 
-    // --- FUNCTIONS ---
+    // Enddatum Input Toggle
+    window.toggleEndDateInput = function() {
+        const type = document.getElementById('req-type-select').value;
+        const endContainer = document.getElementById('container-end-date');
+        const startLabel = document.getElementById('label-date-start');
+        
+        if (type === 'Urlaub' || type === 'Krank') {
+            endContainer.classList.remove('hidden');
+            startLabel.innerText = "Von";
+        } else {
+            endContainer.classList.add('hidden');
+            startLabel.innerText = "Datum";
+            const endInput = document.querySelector('input[name="endDate"]');
+            if(endInput) endInput.value = '';
+        }
+    };
 
-    // 1. LIVE
+    // --- FUNKTIONEN ---
+
+    // 1. ECHTZEIT MONITOR / STEMPELN
     window.manualStamp = async (action) => {
         const res = await apiFetch('/stamp-manual', 'POST', { action });
         if(res && res.status === 'success') { refreshData('live'); }
     };
-    // 1. LIVE MONITOR (KORRIGIERT)
+    
     function loadLiveMonitor() {
-        // FIX: Datum lokal berechnen (nicht ISO/UTC), damit es zur Datenbank passt
-        // 'en-CA' sorgt für Format YYYY-MM-DD
         const today = new Date().toLocaleDateString('en-CA'); 
         
-        console.log("Live-Monitor Check:", { today, totalBookings: bookingsList.length });
-
-        // User-Ansicht (Eigener Status)
         if(currentUser.role !== 'admin') {
             const myLast = bookingsList.filter(b => b.userId === currentUser.id && b.date === today).pop();
             const statEl = document.getElementById('status-display');
+            const lastStamp = document.getElementById('last-stamp-time');
+
             if(myLast && !myLast.end) {
-                statEl.textContent = "Anwesend"; 
-                statEl.className = "text-5xl font-bold text-green-400 mb-3";
-                document.getElementById('last-stamp-time').textContent = `Seit ${myLast.start}`;
+                statEl.textContent = "ANWESEND"; 
+                statEl.className = "text-5xl lg:text-6xl font-brand font-bold text-green-400 mb-4 drop-shadow-md";
+                lastStamp.textContent = `Seit ${myLast.start} Uhr`;
+                lastStamp.className = "inline-block bg-[#0a192f] px-6 py-2 rounded-full text-green-400 font-mono border border-green-900/50 mb-10 text-sm";
             } else {
-                statEl.textContent = "Abwesend"; 
-                statEl.className = "text-5xl font-bold text-gray-500 mb-3";
-                document.getElementById('last-stamp-time').textContent = "--:--";
+                statEl.textContent = "ABWESEND"; 
+                statEl.className = "text-5xl lg:text-6xl font-brand font-bold text-gray-500 mb-4 drop-shadow-md";
+                lastStamp.textContent = "--:--";
+                lastStamp.className = "inline-block bg-[#0a192f] px-6 py-2 rounded-full text-gray-500 font-mono border border-[#233554] mb-10 text-sm";
             }
             return;
         }
 
-        // Admin-Ansicht (Alle Mitarbeiter)
         const container = document.getElementById('live-users-grid');
         container.innerHTML = '';
         
-        // Filter: Datum ist Heute UND Startzeit ist da UND Endzeit fehlt (null oder leer)
         const active = bookingsList.filter(b => b.date === today && b.start && !b.end);
         
-        console.log("Aktive Mitarbeiter gefunden:", active.length);
-
         if (active.length === 0) { 
-            container.innerHTML = '<div class="col-span-full text-center text-gray-500 italic">Aktuell ist niemand eingestempelt.</div>'; 
+            container.innerHTML = '<div class="col-span-full text-center text-gray-500 italic p-10">Aktuell sind keine Mitarbeiter aktiv.</div>'; 
             return; 
         }
 
         active.forEach(b => {
             container.innerHTML += `
-                <div class="bg-ahmtimus-card border-l-4 border-green-500 p-4 rounded shadow flex items-center justify-between animate-fade">
+                <div class="bg-[#112240] border-l-4 border-green-500 p-4 rounded shadow-lg flex items-center justify-between animate-fade hover:bg-[#1a2f55] transition">
                     <div>
-                        <div class="font-bold text-white text-lg">${getUserName(b.userId)}</div>
+                        <div class="font-bold text-white text-lg font-brand">${getUserName(b.userId)}</div>
                         <div class="text-green-400 font-mono text-sm mt-1">
                             <i class="fas fa-clock mr-1"></i> Seit ${b.start} Uhr
                         </div>
@@ -246,38 +247,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. OVERVIEW (JOURNAL)
-    function loadOverview() {
+    // 2. JOURNAL (Übersicht)
+    async function loadOverview() {
         const isAdmin = currentUser.role === 'admin';
         const filterUser = document.getElementById('overview-user-select');
-        const filterDate = document.getElementById('filter-date');
+        const startInp = document.getElementById('filter-date-start');
+        const endInp = document.getElementById('filter-date-end');
         
         if(isAdmin) document.getElementById('admin-filters-overview').classList.remove('hidden');
         document.getElementById('apply-filter-btn').onclick = loadOverview;
 
-        let data = bookingsList;
+        let url = '/bookings?';
+        if(startInp && endInp && startInp.value && endInp.value) {
+            url += `from=${startInp.value}&to=${endInp.value}&`;
+        }
+        
+        let data = await apiFetch(url); 
+        if(!data) data = [];
+
         if (isAdmin && filterUser.value) data = data.filter(b => b.userId == filterUser.value);
         else if (!isAdmin) data = data.filter(b => b.userId === currentUser.id);
 
-        if (filterDate.value) data = data.filter(b => b.date === filterDate.value);
         data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
         const container = document.getElementById('overview-list-container');
         const header = document.getElementById('overview-header');
         container.innerHTML = '';
 
+        // Grid Definition
         const gridClass = isAdmin ? 
             'grid-cols-[0.5fr_1.5fr_1fr_0.7fr_0.7fr_0.6fr_0.6fr_0.6fr_0.8fr_2fr_0.5fr]' : 
             'grid-cols-[1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_2fr]';
         
-        let headHTML = isAdmin ? `<div>Pers.-Nr.</div><div>Name</div>` : ``;
-        headHTML += `<div>Datum</div><div class="text-center">Start</div><div class="text-center">Ende</div><div class="text-center text-gray-500">Pause</div><div class="text-center text-gray-500">Soll</div><div class="text-center text-gray-500">Ist</div><div class="text-center font-bold text-blue-400">Netto</div>${isAdmin ? '' : '<div class="text-center">Saldo</div>'} <div>Bemerkung</div>`;
-        if(isAdmin) headHTML += `<div class="text-center text-white">Aktion</div>`;
+        let headHTML = isAdmin ? `<div class="text-textMuted">ID</div><div class="text-textMuted">Name</div>` : ``;
+        headHTML += `
+            <div class="text-textMuted">Datum</div>
+            <div class="text-center text-textMuted">Beginn</div>
+            <div class="text-center text-textMuted">Ende</div>
+            <div class="text-center text-textMuted text-[10px] uppercase">Pause</div>
+            <div class="text-center text-textMuted text-[10px] uppercase">Soll</div>
+            <div class="text-center text-textMuted text-[10px] uppercase">Ist</div>
+            <div class="text-center font-bold text-brand">Netto</div>
+            ${isAdmin ? '' : '<div class="text-center text-textMuted">Saldo</div>'} 
+            <div class="text-textMuted">Info</div>`;
+        if(isAdmin) headHTML += `<div class="text-center text-white"><i class="fas fa-cog"></i></div>`;
         
-        header.className = `grid ${gridClass} gap-3 px-4 py-3 bg-ahmtimus-dark text-xs font-bold text-gray-500 uppercase border-b border-ahmtimus items-center`;
+        header.className = `grid ${gridClass} gap-2 px-4 py-3 bg-[#0d1b33] border-b border-border text-xs font-bold uppercase items-center sticky top-0 z-10`;
         header.innerHTML = headHTML;
 
-        if(data.length === 0) { container.innerHTML = '<div class="p-6 text-center text-gray-500 italic">Keine Einträge gefunden.</div>'; return; }
+        if(data.length === 0) { container.innerHTML = '<div class="p-10 text-center text-gray-500 italic">Keine Einträge für diesen Zeitraum.</div>'; return; }
 
         data.forEach(b => {
             const target = getUserTarget(b.userId);
@@ -287,34 +305,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const saldo = b.end ? (net - target) : 0;
             
             let typeBadge = '';
-            if (b.type === 'Urlaub') typeBadge = '<span class="text-[10px] bg-blue-900 text-blue-300 px-1 rounded mr-1">URLAUB</span>';
-            if (b.type === 'Krank') typeBadge = '<span class="text-[10px] bg-red-900 text-red-300 px-1 rounded mr-1">KRANK</span>';
+            if (b.type === 'Urlaub') typeBadge = '<span class="text-[9px] bg-blue-900/50 text-blue-300 px-1 rounded mr-1 border border-blue-800">URLAUB</span>';
+            if (b.type === 'Krank') typeBadge = '<span class="text-[9px] bg-red-900/50 text-red-300 px-1 rounded mr-1 border border-red-800">KRANK</span>';
 
             const div = document.createElement('div');
-            div.className = `grid ${gridClass} gap-3 px-4 py-3 items-center hover-blue text-sm transition group border-b border-ahmtimus last:border-0 text-gray-300`;
+            div.className = `grid ${gridClass} gap-2 px-4 py-3 items-center hover:bg-[#1a2f55] transition border-b border-border text-sm text-gray-300 group`;
             
-            let html = isAdmin ? `<div class="font-mono text-xs text-gray-600">${b.userId}</div><div class="font-bold text-white truncate">${getUserName(b.userId)}</div>` : ``;
-            html += `<div class="text-gray-400 font-mono">${b.date.split('-').reverse().join('.')}</div>
-                <div class="text-center font-mono">${b.start}</div><div class="text-center font-mono">${b.end || '--:--'}</div>
-                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(pause)}</div><div class="text-center text-gray-500 text-xs font-mono">${decToTime(target)}</div>
+            let html = isAdmin ? `<div class="font-mono text-xs text-gray-500">${b.userId}</div><div class="font-bold text-white truncate text-xs">${getUserName(b.userId)}</div>` : ``;
+            
+            html += `<div class="text-gray-400 font-mono text-xs">${b.date.split('-').reverse().join('.')}</div>
+                <div class="text-center font-mono bg-[#0a192f] rounded py-0.5 text-xs">${b.start}</div>
+                <div class="text-center font-mono bg-[#0a192f] rounded py-0.5 text-xs">${b.end || '--:--'}</div>
+                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(pause)}</div>
+                <div class="text-center text-gray-500 text-xs font-mono">${decToTime(target)}</div>
                 <div class="text-center text-gray-500 text-xs font-mono">${b.end ? decToTime(rawDiff) : '-'}</div>
-                <div class="text-center font-bold text-blue-400 font-mono text-base">${b.end ? decToTime(net) : '...'}</div>
+                <div class="text-center font-bold text-brand font-mono text-sm">${b.end ? decToTime(net) : '...'}</div>
                 ${isAdmin ? '' : `<div class="text-center font-mono font-bold ${saldo >= 0 ? 'text-green-500' : 'text-red-500'}">${b.end ? (saldo>0?'+':'')+decToTime(saldo) : '-'}</div>`}
-                <div class="truncate text-gray-500 text-xs">${typeBadge}${b.remarks||''}</div>`;
+                <div class="truncate text-gray-400 text-xs">${typeBadge}${b.remarks||''}</div>`;
             
-            if(isAdmin) html += `<div class="text-center"><button onclick="window.openEdit(${b.id})" class="text-gray-500 hover:text-white transition bg-[#0d1b33] h-8 w-8 rounded-full border border-gray-700 hover:border-blue-500 shadow-sm"><i class="fas fa-pen text-xs"></i></button></div>`;
+            if(isAdmin) html += `<div class="text-center"><button onclick="window.openEdit(${b.id})" class="text-brand hover:text-white transition"><i class="fas fa-pen text-xs"></i></button></div>`;
             
             div.innerHTML = html;
             container.appendChild(div);
         });
     }
 
-    // 3. REQUESTS
+    // 3. ANTRÄGE
     window.handleRequest = async (id, status) => {
-        if(!confirm(`Status ändern?`)) return;
+        if(!confirm(`Status wirklich ändern?`)) return;
         const res = await apiFetch(`/requests/${id}`, 'PUT', { status });
         if(res && res.status === 'success') refreshData('requests');
     };
+
     function loadRequests() {
         const isAdmin = currentUser.role === 'admin';
         const listContainer = document.getElementById('request-list-container');
@@ -336,36 +358,67 @@ document.addEventListener('DOMContentLoaded', () => {
         data.sort((a,b) => b.id - a.id);
 
         listContainer.innerHTML = '';
-        if(data.length === 0) { listContainer.innerHTML = '<p class="text-gray-500 italic p-4">Keine Anträge.</p>'; return; }
+        if(data.length === 0) { listContainer.innerHTML = '<p class="text-gray-500 italic p-4 text-center">Keine Anträge vorhanden.</p>'; return; }
 
         data.forEach(req => {
             const item = document.createElement('div');
-            item.className = "bg-ahmtimus-dark p-3 rounded border border-ahmtimus mb-2 hover:border-blue-500 transition";
-            let statusBadge = req.status === 'pending' ? '<span class="text-yellow-500 font-bold text-xs">OFFEN</span>' : (req.status === 'approved' ? '<span class="text-green-500 font-bold text-xs">OK</span>' : '<span class="text-red-500 font-bold text-xs">ABGELEHNT</span>');
-            let buttons = (isAdmin && req.status === 'pending') ? `<div class="mt-2 flex gap-2 justify-end border-t border-ahmtimus pt-2"><button onclick="window.handleRequest(${req.id}, 'approved')" class="text-xs bg-green-700 text-white px-2 py-1 rounded">OK</button><button onclick="window.handleRequest(${req.id}, 'rejected')" class="text-xs bg-red-700 text-white px-2 py-1 rounded">NEIN</button></div>` : '';
-            item.innerHTML = `<div class="flex justify-between items-center mb-1"><div class="text-sm font-bold text-white">${getUserName(req.userId)}</div>${statusBadge}</div>
-                <div class="text-xs text-blue-300 font-bold mb-1">${req.type} <span class="text-gray-500 font-normal">| ${req.date}</span></div>
-                <div class="text-xs text-gray-400 italic">"${req.reason}"</div>${buttons}`;
+            item.className = "bg-[#0a192f] p-4 rounded border border-border mb-3 hover:border-brand/50 transition shadow-sm relative overflow-hidden";
+            
+            let dateDisplay = req.date;
+            if(req.endDate) dateDisplay += ` <i class="fas fa-arrow-right text-[10px] mx-1"></i> ${req.endDate}`;
+
+            let statusBadge = '';
+            if(req.status === 'pending') statusBadge = '<span class="text-yellow-500 bg-yellow-900/20 px-2 py-0.5 rounded text-[10px] font-bold border border-yellow-900/50">OFFEN</span>';
+            else if(req.status === 'approved') statusBadge = '<span class="text-green-500 bg-green-900/20 px-2 py-0.5 rounded text-[10px] font-bold border border-green-900/50">GENEHMIGT</span>';
+            else statusBadge = '<span class="text-red-500 bg-red-900/20 px-2 py-0.5 rounded text-[10px] font-bold border border-red-900/50">ABGELEHNT</span>';
+
+            let buttons = (isAdmin && req.status === 'pending') ? 
+                `<div class="mt-3 flex gap-2 justify-end border-t border-border pt-2">
+                    <button onclick="window.handleRequest(${req.id}, 'approved')" class="text-xs bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded font-bold shadow">OK</button>
+                    <button onclick="window.handleRequest(${req.id}, 'rejected')" class="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded font-bold shadow">ABLEHNEN</button>
+                </div>` : '';
+            
+            item.innerHTML = `
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                         <div class="text-sm font-bold text-white font-brand">${getUserName(req.userId)}</div>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div class="text-xs text-brand font-bold mb-1 uppercase tracking-wide">${req.type} <span class="text-gray-500 font-normal ml-2 font-mono">${dateDisplay}</span></div>
+                <div class="bg-[#112240] p-2 rounded text-xs text-gray-300 italic mb-1 border border-border/50">"${req.reason}"</div>
+                ${buttons}`;
             listContainer.appendChild(item);
         });
     }
 
     document.getElementById('request-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    // Wir wandeln das Formular manuell in ein JSON Objekt um
-    const data = {
-        type: e.target.type.value,
-        date: e.target.date.value,
-        newStart: e.target.newStart.value,
-        newEnd: e.target.newEnd.value,
-        reason: e.target.reason.value
-    };
-    // Sende als JSON (isFormData = false)
-    const res = await apiFetch('/requests', 'POST', data, false); 
-    if (res && res.status === 'success') { alert('Gesendet.'); e.target.reset(); refreshData('requests'); }
-});
+        e.preventDefault();
+        const data = {
+            targetUserId: e.target.targetUserId ? e.target.targetUserId.value : null,
+            type: e.target.type.value,
+            date: e.target.date.value,
+            endDate: e.target.endDate.value,
+            newStart: e.target.newStart.value,
+            newEnd: e.target.newEnd.value,
+            reason: e.target.reason.value
+        };
+        
+        if(data.endDate && data.endDate < data.date) {
+            alert("Das Enddatum darf nicht vor dem Startdatum liegen.");
+            return;
+        }
 
-    // 4. MONTHLY CALENDAR
+        const res = await apiFetch('/requests', 'POST', data, false); 
+        if (res && res.status === 'success') { 
+            alert('Antrag erfolgreich übermittelt.'); 
+            e.target.reset(); 
+            window.toggleEndDateInput();
+            refreshData('requests'); 
+        }
+    });
+
+    // 4. KALENDER
     window.loadMonthly = function() {
         const grid = document.getElementById('calendar-grid');
         const calUserContainer = document.getElementById('cal-user-container');
@@ -381,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (calFilterUser.value) {
                 targetUserId = parseInt(calFilterUser.value);
             } else {
-                grid.innerHTML = '<div class="col-span-7 text-center py-10 text-gray-500">Bitte Mitarbeiter wählen & Filtern klicken.</div>';
+                grid.innerHTML = '<div class="col-span-7 text-center py-10 text-gray-500">Bitte Mitarbeiter wählen & Laden klicken.</div>';
                 return;
             }
         } else {
@@ -393,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let firstDayIndex = new Date(selectedYear, selectedMonth, 1).getDay(); firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; 
 
         ['Mo','Di','Mi','Do','Fr','Sa','So'].forEach(d => {
-             const h = document.createElement('div'); h.className = `text-center text-xs font-bold text-gray-500 py-2 bg-ahmtimus-dark`; h.innerText = d;
+             const h = document.createElement('div'); h.className = `text-center text-[10px] font-bold text-gray-500 py-2 uppercase tracking-wider bg-[#0d1b33]`; h.innerText = d;
              grid.appendChild(h);
         });
         for (let i = 0; i < firstDayIndex; i++) grid.appendChild(document.createElement('div'));
@@ -406,8 +459,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const cell = document.createElement('div');
             const isWeekend = (new Date(selectedYear, selectedMonth, day).getDay() % 6 === 0);
             
-            cell.className = `min-h-[80px] p-1 border-t border-l border-ahmtimus relative flex flex-col ${isWeekend ? 'bg-[#050f1e]' : 'bg-ahmtimus-card hover:bg-blue-900/30'}`;
-            cell.innerHTML = `<div class="text-right text-xs font-bold ${isWeekend ? 'text-blue-500' : 'text-gray-600'}">${day}</div>`;
+            cell.className = `min-h-[90px] p-2 border-t border-l border-border relative flex flex-col transition ${isWeekend ? 'bg-[#050f1e]' : 'bg-[#112240] hover:bg-[#1a2f55]'}`;
+            cell.innerHTML = `<div class="text-right text-xs font-bold ${isWeekend ? 'text-brand' : 'text-gray-500'} mb-1">${day}</div>`;
 
             const b = bookingsList.find(x => x.date === dateStr && x.userId === targetUserId);
             if (b) {
@@ -416,15 +469,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const net = Math.max(0, diff - pause);
                 if (!isWeekend) sumTarget += target;
                 sumActual += net;
-                let color = b.type === 'Krank' ? 'text-red-400' : (b.type === 'Urlaub' ? 'text-blue-400' : 'text-green-400');
-                let label = b.end ? decToTime(net)+'h' : 'Läuft';
-                if(b.type === 'Krank') label = 'Krank';
-                if(b.type === 'Urlaub') label = 'Urlaub';
-                cell.innerHTML += `<div class="mt-auto text-[10px] text-center ${color}">${label}</div>`;
-                if(currentUser.role === 'admin') { cell.onclick = () => window.openEdit(b.id); cell.classList.add('cursor-pointer'); }
+                
+                let colorClass = 'text-green-400 bg-green-900/10 border-green-900/30';
+                let label = b.end ? decToTime(net)+'h' : 'Läuft...';
+                
+                if(b.type === 'Krank') { label = 'KRANK'; colorClass = 'text-red-400 bg-red-900/10 border-red-900/30'; }
+                if(b.type === 'Urlaub') { label = 'URLAUB'; colorClass = 'text-blue-300 bg-blue-900/10 border-blue-900/30'; }
+
+                cell.innerHTML += `<div class="mt-auto text-[10px] text-center font-bold border rounded py-1 px-1 ${colorClass}">${label}</div>`;
+                if(currentUser.role === 'admin') { 
+                    cell.onclick = () => window.openEdit(b.id); 
+                    cell.classList.add('cursor-pointer'); 
+                }
             } else if(!isWeekend && dateStr < new Date().toISOString().split('T')[0]) {
                  sumTarget += target;
-                 cell.innerHTML += `<div class="mt-auto text-center text-[8px] text-red-900 font-bold">FEHLT</div>`;
+                 cell.innerHTML += `<div class="mt-auto text-center text-[9px] text-red-800 font-bold uppercase tracking-wider">Fehlt</div>`;
             }
             grid.appendChild(cell);
         }
@@ -432,7 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cal-stat-actual').textContent = decToTime(sumActual);
         const bal = sumActual - sumTarget;
         document.getElementById('cal-stat-balance').textContent = (bal>0?'+':'') + decToTime(bal);
-        document.getElementById('cal-stat-balance').className = `text-xl font-bold ${bal>=0?'text-green-500':'text-red-500'}`;
+        document.getElementById('cal-stat-balance').className = `text-xl font-mono font-bold ${bal>=0?'text-green-400':'text-red-400'}`;
     };
 
     window.exportToCSV = function() {
@@ -443,14 +502,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let targetUserId = currentUser.id;
         if(currentUser.role === 'admin') {
             const val = document.getElementById('cal-filter-user').value;
-            if(!val) { alert("Bitte Mitarbeiter wählen für Export."); return; }
+            if(!val) { alert("Bitte Mitarbeiter für Export wählen."); return; }
             targetUserId = val;
         }
 
         let csvContent = "data:text/csv;charset=utf-8,\uFEFFPers.-Nr.;Name;Datum;Start;Ende;Pause;Soll;Ist;Netto;Saldo;Bemerkung\n";
         let data = bookingsList.filter(b => b.date.startsWith(prefix) && b.userId == targetUserId);
         
-        if(data.length === 0) { alert("Keine Daten für diesen Zeitraum."); return; }
+        if(data.length === 0) { alert("Keine Daten für diesen Zeitraum vorhanden."); return; }
         data.sort((a,b) => new Date(a.date) - new Date(b.date));
 
         data.forEach(b => {
@@ -467,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
     };
 
-    // 5. ACCOUNT
+    // 5. ZEITKONTO
     function loadTimeAccount() {
         const isAdmin = currentUser.role === 'admin';
         const filterArea = document.getElementById('account-filter-area');
@@ -507,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('acc-balance').textContent = (totalBalance >= 0 ? '+' : '') + decToTime(Math.abs(totalBalance)) + ' h';
-        document.getElementById('acc-balance').className = `text-3xl font-bold ${totalBalance >= 0 ? 'text-green-500' : 'text-red-500'}`;
+        document.getElementById('acc-balance').className = `text-3xl font-mono font-bold ${totalBalance >= 0 ? 'text-green-400' : 'text-red-400'}`;
         document.getElementById('acc-vacation-total').textContent = user.vacationDays || 30;
         document.getElementById('acc-vacation-left').textContent = (user.vacationDays || 30) - vacationTaken;
         document.getElementById('acc-sick').textContent = sickDays;
@@ -520,61 +579,56 @@ document.addEventListener('DOMContentLoaded', () => {
              const pause = b.end ? calcPause(diff) : 0;
              const net = Math.max(0, diff - pause);
              const div = document.createElement('div');
-             div.className = "px-6 py-2 flex justify-between items-center hover:bg-blue-900/20 text-sm text-gray-400 border-b border-[#233554] last:border-0";
-             div.innerHTML = `<div><span class="font-bold text-gray-300">${b.date}</span> <span class="text-xs ml-2">${b.type}</span></div><div class="font-mono">${decToTime(net)} h</div>`;
+             div.className = "px-4 py-2 flex justify-between items-center hover:bg-[#1a2f55] text-sm text-gray-400 border-b border-border last:border-0 transition";
+             div.innerHTML = `<div><span class="font-bold text-white font-mono">${b.date}</span> <span class="text-xs ml-2 text-brand">${b.type}</span></div><div class="font-mono text-white">${decToTime(net)} h</div>`;
              listContainer.appendChild(div);
         });
     }
 
-    // 6. HISTORY (AKTIVITÄTEN) - Mit "Wer -> Wen" Logik
+    // 6. HISTORY LOG
      function loadHistory() {
-    apiFetch('/history').then(log => {
-        const tbody = document.getElementById('audit-log-body');
-        tbody.innerHTML = '';
-        
-        if (!log || log.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Keine Aktivitäten.</td></tr>';
-            return;
-        }
-
-        log.forEach(entry => {
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-blue-900/20 border-b border-ahmtimus transition";
+        apiFetch('/history').then(log => {
+            const tbody = document.getElementById('audit-log-body');
+            tbody.innerHTML = '';
             
-            // Datum formatieren
-            const dateStr = new Date(entry.timestamp).toLocaleString('de-DE', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-
-            // --- NEU: ANZEIGE "AKTEUR -> BETROFFENER" ---
-            let whoDisplay = entry.actor;
-            
-            // Wenn es einen betroffenen User gibt UND der anders ist als der Täter:
-            if (entry.affectedUser && entry.affectedUser !== entry.actor) {
-                // Wir fügen einen Pfeil und den zweiten Namen hinzu
-                whoDisplay += ` <i class="fas fa-arrow-right text-gray-500 mx-1 text-[10px]"></i> <span class="text-white">${entry.affectedUser}</span>`;
+            if (!log || log.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-500 italic">Keine Aktivitäten aufgezeichnet.</td></tr>';
+                return;
             }
-            // ---------------------------------------------
 
-            tr.innerHTML = `
-                <td class="px-6 py-2 text-gray-500 text-xs whitespace-nowrap">${dateStr}</td>
-                <td class="px-6 py-2 font-bold text-gray-300">${whoDisplay}</td> <td class="px-6 py-2 text-xs font-bold text-blue-300">${entry.action}</td>
-                <td class="px-6 py-2 text-xs text-red-300 font-mono break-all">${entry.oldValue || '-'}</td>
-                <td class="px-6 py-2 text-xs text-green-300 font-mono break-all">${entry.newValue || '-'}</td>
-            `;
-            tbody.appendChild(tr);
+            log.forEach(entry => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-[#1a2f55] border-b border-border transition text-xs";
+                
+                const dateStr = new Date(entry.timestamp).toLocaleString('de-DE', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+
+                let whoDisplay = entry.actor;
+                if (entry.affectedUser && entry.affectedUser !== entry.actor) {
+                    whoDisplay += ` <i class="fas fa-arrow-right text-gray-500 mx-1"></i> <span class="text-white">${entry.affectedUser}</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-3 text-gray-500 font-mono whitespace-nowrap">${dateStr}</td>
+                    <td class="px-6 py-3 font-bold text-gray-300">${whoDisplay}</td> 
+                    <td class="px-6 py-3 font-bold text-brand uppercase tracking-wider">${entry.action}</td>
+                    <td class="px-6 py-3 text-red-300 font-mono break-all">${entry.oldValue || '-'}</td>
+                    <td class="px-6 py-3 text-green-300 font-mono break-all">${entry.newValue || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         });
-    });
-}
+    }
 
     // 7. DASHBOARD LOGIC
     async function loadDashboard() {
         const data = await apiFetch('/dashboard');
         if (!data) return;
 
-        // A. Stats füllen
+        // Stats
         document.getElementById('dash-hours-week').textContent = data.hoursWeek.toString().replace('.', ',');
         document.getElementById('dash-next-vacation').textContent = data.nextVacation;
 
-        // B. Warnungen anzeigen
+        // Alerts
         const alertContainer = document.getElementById('dashboard-alerts-container');
         alertContainer.innerHTML = '';
         
@@ -582,13 +636,13 @@ document.addEventListener('DOMContentLoaded', () => {
             alertContainer.classList.remove('hidden');
             data.alerts.forEach(alert => {
                 const div = document.createElement('div');
-                div.className = "bg-red-900/20 border-l-4 border-red-500 p-4 rounded flex justify-between items-center";
+                div.className = "bg-red-900/10 border-l-4 border-red-500 p-4 rounded flex justify-between items-center shadow-lg";
                 div.innerHTML = `
                     <div>
-                        <div class="text-red-400 font-bold text-sm"> <i class="fas fa-exclamation-triangle mr-2"></i> Gehen vergessen am ${alert.date}</div>
-                        <div class="text-gray-400 text-xs mt-1">Eingestempelt um ${alert.start} Uhr</div>
+                        <div class="text-red-400 font-bold text-sm uppercase tracking-wide"> <i class="fas fa-exclamation-triangle mr-2"></i> Buchungsfehler: ${alert.date}</div>
+                        <div class="text-gray-500 text-xs mt-1">Eingestempelt um ${alert.start} Uhr - kein Ende.</div>
                     </div>
-                    <button onclick="window.openCorrection('${alert.date}', '${alert.start}', ${alert.id})" class="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded font-bold transition">
+                    <button onclick="window.openCorrection('${alert.date}', '${alert.start}', ${alert.id})" class="bg-red-600 hover:bg-red-500 text-white text-xs px-4 py-2 rounded font-bold uppercase transition shadow">
                         Korrigieren
                     </button>
                 `;
@@ -599,26 +653,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Hilfsfunktion: Öffnet direkt das Antragsformular mit vorausgefüllten Daten
     window.openCorrection = function(date, start, id) {
         switchSection('requests');
-        // Datum umformen für Input (DD.MM.YYYY -> YYYY-MM-DD)
         const parts = date.split('.');
         const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
         
-        // Formular füllen (IDs müssen in deinem HTML existieren, z.B. im Request-Formular)
-        // Hinweis: Wir nutzen hier das 'request-form' das du schon hast
         const form = document.getElementById('request-form');
         if(form) {
             form.querySelector('[name="type"]').value = 'Korrektur';
+            window.toggleEndDateInput(); 
             form.querySelector('[name="date"]').value = isoDate;
             form.querySelector('[name="newStart"]').value = start;
-            form.querySelector('[name="reason"]').value = "Gehen vergessen";
-            form.querySelector('[name="newEnd"]').focus(); // Fokus auf Ende setzen
+            form.querySelector('[name="reason"]').value = "Fehlende Ausstempelung";
+            form.querySelector('[name="newEnd"]').focus();
         }
     };
 
-    // EDIT MODAL LOGIC
+    // EDIT MODAL
     window.openEdit = function(id) {
         const b = bookingsList.find(x => x.id === id); if(!b) return;
         document.getElementById('edit-id').value = b.id;
@@ -649,9 +700,8 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(res.message || "Fehler beim Speichern");
         }
     };
-    // --- PASSWORT ÄNDERN LOGIK ---
 
-    // 1. Modal öffnen
+    // --- PASSWORT ÄNDERN ---
     const pwModal = document.getElementById('password-modal');
     const pwBtn = document.getElementById('nav-password-button');
     const pwClose = document.getElementById('close-pw-modal');
@@ -659,21 +709,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (pwBtn) {
         pwBtn.addEventListener('click', () => {
-            // Formular leeren beim Öffnen
             document.getElementById('password-form').reset();
             pwError.classList.add('hidden');
             pwModal.classList.remove('hidden');
         });
     }
 
-    // 2. Modal schließen
     if (pwClose) {
         pwClose.addEventListener('click', () => {
             pwModal.classList.add('hidden');
         });
     }
 
-    // 3. Speichern
     const pwForm = document.getElementById('password-form');
     if (pwForm) {
         pwForm.addEventListener('submit', async (e) => {
@@ -682,14 +729,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPw = document.getElementById('pw-new').value;
             const confirmPw = document.getElementById('pw-confirm').value;
 
-            // Validierung im Frontend
             if (newPw !== confirmPw) {
-                pwError.textContent = "Die neuen Passwörter stimmen nicht überein.";
+                pwError.textContent = "Passwörter stimmen nicht überein.";
                 pwError.classList.remove('hidden');
                 return;
             }
 
-            // Senden an Server
             const res = await apiFetch('/password', 'PUT', { 
                 oldPassword: oldPw, 
                 newPassword: newPw 
@@ -705,22 +750,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // =======================================================
-    // 8. BENACHRICHTIGUNGEN (OPTIMIERT)
-    // =======================================================
-    
+    // --- BENACHRICHTIGUNGEN ---
     const notifBtn = document.getElementById('notification-btn');
     const notifBadge = document.getElementById('notification-badge');
     const notifDropdown = document.getElementById('notification-dropdown');
     const notifList = document.getElementById('notification-list');
     let notifData = null; 
 
-    // Scrollbar-Klasse zum Dropdown-Container hinzufügen (falls noch nicht im HTML)
-    if(notifList) notifList.className = "text-sm text-gray-300 space-y-2 max-h-64 overflow-y-auto custom-scroll pr-1";
-
-    // A. Polling
     setInterval(checkNotifications, 30000);
-    checkNotifications(); // Auch direkt beim Start
+    checkNotifications(); 
 
     async function checkNotifications() {
         if (!currentUser) return;
@@ -733,40 +771,34 @@ document.addEventListener('DOMContentLoaded', () => {
             notifBadge.textContent = data.count;
             notifBadge.classList.remove('hidden');
             notifBtn.classList.add('text-white');
+            notifBtn.classList.remove('text-textMuted');
         } else {
             notifBadge.classList.add('hidden');
             notifBtn.classList.remove('text-white');
-            // Wir schließen das Dropdown nicht automatisch, falls der User es gerade offen hat
+            notifBtn.classList.add('text-textMuted');
         }
     }
 
-    // B. Klick auf die Glocke (Für ALLE gleich: Dropdown öffnen)
     if (notifBtn) {
         notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Wichtig, damit window-click es nicht sofort schließt
+            e.stopPropagation(); 
             if (!notifData || notifData.count === 0) return;
-            
             notifDropdown.classList.toggle('hidden');
             renderNotifications();
         });
     }
 
-    // C. Liste rendern (Unterscheidung Admin / User)
     function renderNotifications() {
         notifList.innerHTML = '';
-        
         if (!notifData || !notifData.items) return;
 
         notifData.items.forEach(item => {
             const div = document.createElement('div');
-            // Styling: Hover-Effekt und Cursor für Klickbarkeit
-            div.className = "p-3 rounded border-l-4 mb-1 cursor-pointer hover:bg-white/10 transition shadow-sm";
+            div.className = "p-3 border-l-4 mb-1 cursor-pointer hover:bg-[#1a2f55] transition text-xs border-b border-border last:border-0";
             
-            // Klick auf das Item -> Weiterleitung zu Anträge
             div.onclick = () => {
                 switchSection('requests');
                 notifDropdown.classList.add('hidden');
-                // Optional: Automatisch filtern (bei Admin auf 'pending')
                 if(currentUser.role === 'admin') {
                     document.getElementById('req-filter-status').value = 'pending';
                     refreshData('requests');
@@ -774,52 +806,43 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             if (currentUser.role === 'admin') {
-                // --- ADMIN ANSICHT ---
-                // Zeigt: Wer hat was beantragt?
-                div.classList.add('bg-[#0a192f]', 'border-yellow-500');
+                div.classList.add('border-yellow-500');
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div class="font-bold text-white text-xs">${item.user}</div>
-                        <div class="text-[10px] text-gray-400">${item.date}</div>
+                        <div class="font-bold text-white">${item.user}</div>
+                        <div class="text-[9px] text-gray-500">${item.date}</div>
                     </div>
-                    <div class="text-yellow-500 text-xs font-bold mt-1">Neuer Antrag: ${item.type}</div>
-                    <div class="text-[10px] text-gray-500 mt-1">Klicken zum Bearbeiten</div>
+                    <div class="text-brand font-bold mt-1">Antrag: ${item.type}</div>
                 `;
             } else {
-                // --- USER ANSICHT ---
-                // Zeigt: Status-Update (Datum und Ergebnis)
                 const isOk = item.status === 'approved';
                 const colorClass = isOk ? 'border-green-500' : 'border-red-500';
                 const statusText = isOk ? 'Genehmigt' : 'Abgelehnt';
                 const statusColor = isOk ? 'text-green-400' : 'text-red-400';
-                const icon = isOk ? 'fa-check' : 'fa-times';
 
-                div.classList.add('bg-[#0a192f]', colorClass);
+                div.classList.add(colorClass);
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div class="font-bold ${statusColor} text-xs"><i class="fas ${icon} mr-1"></i> ${statusText}</div>
-                        <div class="text-[10px] text-gray-400">${item.date}</div>
+                        <div class="font-bold ${statusColor}">${statusText}</div>
+                        <div class="text-[9px] text-gray-500">${item.date}</div>
                     </div>
-                    <div class="text-white text-xs mt-1 font-bold">${item.type}</div>
-                    <div class="text-[10px] text-gray-400 italic truncate">"${item.reason}"</div>
+                    <div class="text-white mt-1 font-bold">${item.type}</div>
+                    <div class="text-gray-400 italic truncate mt-1">"${item.reason}"</div>
                 `;
             }
             notifList.appendChild(div);
         });
     }
 
-    // D. "Gelesen" Button
     document.getElementById('notification-clear-btn').addEventListener('click', async (e) => {
-        e.stopPropagation(); // Dropdown offen lassen kurz
+        e.stopPropagation(); 
         if(currentUser.role !== 'admin') {
-            // Nur User müssen "gelesen" markieren, Admin sieht eh immer den Live-Status
             await apiFetch('/notifications/read', 'POST', {});
         }
         notifDropdown.classList.add('hidden');
         checkNotifications(); 
     });
 
-    // Schließen bei Klick außerhalb
     window.addEventListener('click', (e) => {
         if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
             notifDropdown.classList.add('hidden');
