@@ -1,59 +1,57 @@
--- backend/db/init.sql
-
--- 1. Kunden (Mandanten)
+-- 1. Kunden
 CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Benutzer
+-- 2. Benutzer (MIT der Spalte is_initial_password!)
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL, -- Hier kommt der Bcrypt Hash rein
-    role VARCHAR(20) DEFAULT 'user', -- 'admin' oder 'user'
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user',
     display_name VARCHAR(100),
     customer_id INTEGER REFERENCES customers(id),
     daily_target NUMERIC(4,2) DEFAULT 8.0,
     vacation_days INTEGER DEFAULT 30,
-    card_id VARCHAR(50), -- Für den ESP32 RFID Chip
+    card_id VARCHAR(50),
+    is_initial_password BOOLEAN DEFAULT TRUE, -- WICHTIG!
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Buchungen (Zeiterfassung)
+-- 3. Tabellen für Buchungen, Anträge etc. (kurz gehalten für Reset)
 CREATE TABLE IF NOT EXISTS bookings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     date DATE NOT NULL,
     start_time TIME,
     end_time TIME,
-    type VARCHAR(50), -- 'Kommen', 'Gehen', 'Urlaub', 'Krank'
+    type VARCHAR(50),
     remarks TEXT,
-    history JSONB, -- Änderungshistorie als JSON
+    history JSONB,
     is_edited BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Anträge (Urlaub/Korrektur)
 CREATE TABLE IF NOT EXISTS requests (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     date DATE NOT NULL,
+    end_date DATE,
     new_start TIME,
     new_end TIME,
     reason TEXT,
-    status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    status VARCHAR(20) DEFAULT 'pending',
     type VARCHAR(50),
     user_seen BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Audit Logs (Sicherheit)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
     customer_id INTEGER REFERENCES customers(id),
-    actor VARCHAR(100), -- Wer hat es getan?
+    actor VARCHAR(100),
     action VARCHAR(50),
     old_value TEXT,
     new_value TEXT,
@@ -61,15 +59,18 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- INITIALE DATEN (Damit du dich einloggen kannst)
--- Passwort für admin ist: 'admin123' (als Bcrypt Hash)
+-- INITIALE DATEN
 INSERT INTO customers (name) VALUES ('McKensy') ON CONFLICT DO NOTHING;
 
-INSERT INTO users (username, password, role, display_name, customer_id) 
+-- Admin User erstellen
+-- Passwort ist 'admin123' (als Hash)
+-- is_initial_password steht auf TRUE, damit das Modal erscheint
+INSERT INTO users (username, password, role, display_name, customer_id, is_initial_password) 
 VALUES (
     'admin', 
-    '$2a$10$xgGKgKRURVfZMJ2LdpiCguKDKMwrRjRdmWpKmWybIm8E4rwNaeU72', -- Beispiel Hash muss noch generiert werden, siehe unten!
+    '$2a$10$xgGKgKRURVfZMJ2LdpiCguKDKMwrRjRdmWpKmWybIm8E4rwNaeU72', 
     'admin', 
     'Super Admin', 
-    1
+    1,
+    TRUE 
 ) ON CONFLICT (username) DO NOTHING;

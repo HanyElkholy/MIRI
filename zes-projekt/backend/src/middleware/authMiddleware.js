@@ -1,17 +1,27 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = (req, res, next) => {
-    // 1. Token aus Header holen ("Bearer <token>")
+module.exports = function(req, res, next) {
+    // 1. Header holen
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.status(401).json({ message: "Kein Token" });
+    if (!token) {
+        return res.status(401).json({ message: "Kein Token vorhanden" });
+    }
 
-    // 2. Prüfen
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: "Token ungültig" });
+    // 2. Token prüfen
+    const secret = process.env.JWT_SECRET;
+    
+    if (!secret) {
+        return res.status(500).json({ message: "Server-Konfigurationsfehler" });
+    }
+    
+    jwt.verify(token, secret, (err, user) => {
+        if (err) {
+            // Token ungültig oder abgelaufen
+            return res.status(403).json({ message: "Token ungültig oder abgelaufen" });
+        }
         
-        // 3. User-Daten an Request anhängen
         req.user = user;
         next();
     });

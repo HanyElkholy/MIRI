@@ -1,4 +1,3 @@
-
 const db = require('../config/db');
 
 exports.logAudit = async (customerId, actor, action, oldVal, newVal, affectedUser) => {
