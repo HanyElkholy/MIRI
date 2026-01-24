@@ -1,8 +1,9 @@
 -- 1. Kunden
 CREATE TABLE IF NOT EXISTS customers (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    working_days INTEGER[] DEFAULT '{1,2,3,4,5}' -- Added working_days to match usage in code
 );
 
 -- 2. Benutzer (MIT der Spalte is_initial_password!)
@@ -12,11 +13,12 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(20) DEFAULT 'user',
     display_name VARCHAR(100),
-    customer_id INTEGER REFERENCES customers(id),
+    customer_id UUID REFERENCES customers(id),
     daily_target NUMERIC(4,2) DEFAULT 8.0,
     vacation_days INTEGER DEFAULT 30,
     card_id VARCHAR(50),
-    is_initial_password BOOLEAN DEFAULT TRUE, -- WICHTIG!
+    is_initial_password BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE, -- NEU: Status
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,7 +52,7 @@ CREATE TABLE IF NOT EXISTS requests (
 
 CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
-    customer_id INTEGER REFERENCES customers(id),
+    customer_id UUID REFERENCES customers(id),
     actor VARCHAR(100),
     action VARCHAR(50),
     old_value TEXT,
@@ -65,12 +67,13 @@ INSERT INTO customers (name) VALUES ('McKensy') ON CONFLICT DO NOTHING;
 -- Admin User erstellen
 -- Passwort ist 'admin123' (als Hash)
 -- is_initial_password steht auf TRUE, damit das Modal erscheint
-INSERT INTO users (username, password, role, display_name, customer_id, is_initial_password) 
+INSERT INTO users (username, password, role, display_name, customer_id, is_initial_password, is_active) 
 VALUES (
     'admin', 
     '$2a$10$xgGKgKRURVfZMJ2LdpiCguKDKMwrRjRdmWpKmWybIm8E4rwNaeU72', 
     'admin', 
     'Super Admin', 
-    1,
-    TRUE 
+    (SELECT id FROM customers WHERE name = 'McKensy' LIMIT 1),
+    TRUE,
+    TRUE
 ) ON CONFLICT (username) DO NOTHING;

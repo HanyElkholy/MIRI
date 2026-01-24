@@ -250,7 +250,7 @@ exports.getBookings = async (req, res) => {
             p.push(id);
         }
 
-        q += ` ORDER BY date DESC, start_time DESC LIMIT 500`;
+        q += ` ORDER BY date DESC, start_time DESC LIMIT 100`;
         const result = await db.query(q, p);
         res.json(result.rows);
     } catch (err) { console.error(err); res.status(500).json({}); }
@@ -286,13 +286,13 @@ exports.manualStamp = async (req, res) => {
         if (action === 'start') {
             await db.query(`INSERT INTO bookings (user_id, date, start_time, type) VALUES ($1, $2, $3, 'Web-Terminal')`,
                 [userId, dateStr, timeStr]);
-            await logAudit(req.user.customerId, req.user.displayName, 'Stempeln', '', 'Kommen', req.user.displayName);
+            await logAudit(req.user.customerId, req.user.displayName, 'Stempeln', '', `Kommen ${timeStr}`, req.user.displayName);
         } else {
             const open = await db.query(`SELECT id FROM bookings WHERE user_id = $1 AND date = $2 AND end_time IS NULL`,
                 [userId, dateStr]);
             if (open.rows.length > 0) {
                 await db.query(`UPDATE bookings SET end_time = $1 WHERE id = $2`, [timeStr, open.rows[0].id]);
-                await logAudit(req.user.customerId, req.user.displayName, 'Stempeln', '', 'Gehen', req.user.displayName);
+                await logAudit(req.user.customerId, req.user.displayName, 'Stempeln', '', `Gehen ${timeStr}`, req.user.displayName);
             }
         }
         res.json({ status: "success" });
@@ -341,7 +341,7 @@ exports.stamp = async (req, res) => {
                 [user.id, dateStr, timeStr, 'valid']);
         }
 
-        await logAudit(user.customer_id, 'Terminal', 'Chip Stempelung', '', type, user.display_name);
+        await logAudit(user.customer_id, 'Terminal', 'Chip Stempelung', 'Terminal', `${type} ${timeStr}`, user.display_name);
 
         res.status(200).json({ status: "success", user: user.display_name, type: type });
     } catch (e) { console.error(e); res.status(500).json({ message: "Server Fehler" }); }
@@ -391,7 +391,7 @@ exports.getHistory = async (req, res) => {
             c++;
         }
 
-        q += ` ORDER BY timestamp DESC LIMIT 200`; // Limit etwas erhöht
+        q += ` ORDER BY timestamp DESC LIMIT 50`; // Limit reduziert (Performance)
 
         const r = await db.query(q, p);
         res.json(r.rows);

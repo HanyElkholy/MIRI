@@ -229,6 +229,15 @@ exports.deleteRequest = async (req, res) => {
         }
 
         await pool.query('DELETE FROM requests WHERE id = $1', [id]);
+
+        if (typeof logAudit === 'function') {
+            // Wir holen den User-Namen für das Log
+            const userRes = await pool.query('SELECT display_name FROM users WHERE id = $1', [request.user_id]);
+            const targetName = userRes.rows[0]?.display_name || 'Unbekannt';
+
+            await logAudit(req.user.customerId, req.user.displayName, 'Antrag gelöscht', request.type, 'Gelöscht', targetName);
+        }
+
         res.json({ status: 'success', message: 'Antrag und Kalendereinträge erfolgreich gelöscht.' });
 
     } catch (err) {

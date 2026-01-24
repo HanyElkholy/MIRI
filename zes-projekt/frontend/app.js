@@ -154,11 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('client-name-display').textContent = currentUser.clientName || "System";
 
         // --- 1. ADMIN BUTTONS IM HEADER ---
-        const createUserBtn = document.getElementById('nav-create-user-btn');
-        if (currentUser.role === 'admin') {
-            createUserBtn.classList.remove('hidden');
-            createUserBtn.onclick = () => document.getElementById('create-user-modal').classList.remove('hidden');
-        }
+        // (Create User Button entfernt, da jetzt im Reiter Mitarbeiter)
 
         // --- 2. PASSWORT BUTTON LOGIK (Admin-Weiche) ---
         // Wir suchen den Button "nav-password-button"
@@ -258,6 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('user-live-terminal').classList.add('hidden');
             document.getElementById('admin-live-dashboard').classList.remove('hidden');
 
+            // NEU: Mobile Buttons anpassen
+            if (document.getElementById('mob-nav-dashboard')) document.getElementById('mob-nav-dashboard').classList.add('hidden');
+            if (document.getElementById('mob-nav-live')) document.getElementById('mob-nav-live').classList.remove('hidden');
+
+            // NEU: Mitarbeiter Button anzeigen
+            if (document.getElementById('nav-users-button')) document.getElementById('nav-users-button').classList.remove('hidden');
+            if (document.getElementById('mob-nav-users')) document.getElementById('mob-nav-users').classList.remove('hidden');
+
             // Initial User laden für Dropdowns
             apiFetch('/users').then(data => {
                 if (Array.isArray(data)) {
@@ -270,6 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('nav-live-button').classList.add('hidden');
             document.getElementById('user-live-terminal').classList.remove('hidden');
             document.getElementById('admin-live-dashboard').classList.add('hidden');
+
+            // NEU: Mobile Buttons anpassen
+            if (document.getElementById('mob-nav-dashboard')) document.getElementById('mob-nav-dashboard').classList.remove('hidden');
+            if (document.getElementById('mob-nav-live')) document.getElementById('mob-nav-live').classList.add('hidden');
 
             usersList = [{
                 id: currentUser.id,
@@ -390,7 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Mapping: Welcher Button führt zu welchem Hash?
     const navMap = {
         'dashboard': 'dashboard', 'overview': 'overview', 'live': 'live',
-        'requests': 'requests', 'monthly': 'monthly', 'account': 'account', 'history': 'history'
+        'requests': 'requests', 'monthly': 'monthly', 'account': 'account',
+        'history': 'history', 'users': 'users' // NEU
     };
 
     // 3. Klick-Listener: Ändert NUR die URL (#hash)
@@ -458,6 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (name === 'history') loadHistory();
         if (name === 'account') loadTimeAccount();
         if (name === 'dashboard') loadDashboard();
+        if (name === 'users') loadUsers(); // NEU
     }
 
     // --- DROPDOWNS INITIALISIEREN ---
@@ -859,6 +869,63 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.error(e);
             alert("❌ Verbindungsfehler zum Server.");
+        }
+    };
+
+    // --- 7. USER MANAGEMENT (NEU) ---
+    async function loadUsers() {
+        if (currentUser.role !== 'admin') return;
+
+        const container = document.getElementById('users-table-body');
+        const data = await apiFetch('/users');
+        if (!Array.isArray(data)) return;
+
+        usersList = data; // Update global list too
+        container.innerHTML = '';
+
+        data.forEach(u => {
+            // Status Badge
+            const isActive = (u.isActive !== false); // Default true if undefined
+            const statusHtml = isActive
+                ? '<span class="px-2 py-1 bg-green-900/30 text-green-400 rounded text-xs border border-green-900/50">Aktiv</span>'
+                : '<span class="px-2 py-1 bg-red-900/30 text-red-400 rounded text-xs border border-red-900/50">Inaktiv</span>';
+
+            // Button (Nur wenn Active & nicht selbst)
+            let btnHtml = '';
+            if (isActive && u.id !== currentUser.id) {
+                btnHtml = `
+                <button onclick="window.deleteUser(${u.id}, '${u.displayName}')" 
+                    class="text-red-400 hover:text-white border border-red-900/30 hover:bg-red-900/50 rounded px-2 py-1 transition text-xs">
+                    <i class="fas fa-trash-alt mr-1"></i> Entfernen
+                </button>`;
+            } else if (!isActive) {
+                btnHtml = '<span class="text-xs text-gray-600 italic">Chip frei</span>';
+            }
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-[#112240] transition group border-b border-border/50 last:border-0";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-white whitespace-nowrap">${u.displayName}</td>
+                <td class="px-6 py-4 text-gray-400 font-mono text-xs">${u.username}</td>
+                <td class="px-6 py-4 text-brand font-mono text-xs tracking-wider">${u.cardId || '-'}</td>
+                <td class="px-6 py-4 text-center">${statusHtml}</td>
+                <td class="px-6 py-4 text-center">${btnHtml}</td>
+            `;
+            container.appendChild(tr);
+        });
+    }
+
+    window.deleteUser = async (id, name) => {
+        if (!confirm(`WARNUNG:\nMöchten Sie "${name}" wirklich entfernen?\n\n- Der Account wird deaktiviert.\n- Die Chip-ID wird freigegeben und kann neu vergeben werden.\n- Historische Daten bleiben erhalten.`)) return;
+
+        const res = await apiFetch(`/users/${id}`, 'DELETE');
+        if (res && res.status === 'success') {
+            alert(res.message);
+            refreshData('users');
+            // Dropdowns refreshen
+            apiFetch('/users').then(d => { usersList = d; initAllDropdowns(); });
+        } else {
+            alert("Fehler: " + (res.message || "Konnte User nicht entfernen"));
         }
     };
 
@@ -1338,14 +1405,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorClass = 'text-red-500 font-bold';
                 if (valDisplay === 'rejected') valDisplay = '<i class="fas fa-times-circle mr-1"></i> Abgelehnt';
             }
-            if (valDisplay === 'Kommen') { valDisplay = '<i class="fas fa-sign-in-alt mr-1"></i> Kommen'; colorClass = 'text-green-400'; }
-            if (valDisplay === 'Gehen') { valDisplay = '<i class="fas fa-sign-out-alt mr-1"></i> Gehen'; colorClass = 'text-orange-400'; }
+            // Neue Split Logik für Alt/Neu
+            const oldVal = row.oldValue || '-';
+            const newVal = row.newValue || '-';
+
+            // Icons für Kommen/Gehen
+            let newValDisplay = newVal;
+            if (newVal.includes('Kommen')) newValDisplay = `<span class="text-green-400 font-bold"><i class="fas fa-sign-in-alt mr-1"></i> ${newVal}</span>`;
+            else if (newVal.includes('Gehen')) newValDisplay = `<span class="text-orange-400 font-bold"><i class="fas fa-sign-out-alt mr-1"></i> ${newVal}</span>`;
+            else if (newVal === 'Inaktiv') newValDisplay = `<span class="text-red-500 font-bold">Inaktiv</span>`;
+            else if (newVal === 'Gelöscht') newValDisplay = `<span class="text-red-500 font-bold line-through">Gelöscht</span>`;
 
             tr.innerHTML = `
             <td class="px-6 py-3 text-gray-500 text-xs font-mono">${ts}</td>
             <td class="px-6 py-3 text-white font-bold text-xs">${row.actor || '-'}</td>
             <td class="px-6 py-3 text-brand text-xs uppercase tracking-wide font-bold">${actionDisplay}</td>
-            <td class="px-6 py-3 ${colorClass} text-xs" colspan="2">${valDisplay}</td>
+            <td class="px-6 py-3 text-blue-300 font-bold text-xs">${row.affectedUser || (row.actor === currentUser.displayName ? 'Ich' : '-')}</td>
+            <td class="px-6 py-3 text-xs text-red-400/70 font-mono">${oldVal}</td>
+            <td class="px-6 py-3 text-xs text-green-400 font-mono font-bold">${newValDisplay}</td>
         `;
             body.appendChild(tr);
         });

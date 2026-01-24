@@ -19,7 +19,8 @@ router.use(authMiddleware);
 router.put('/password', authController.changePassword); // NEU
 
 router.get('/users', userController.getUsers);
-router.post('/users', userController.createUser); 
+router.post('/users', userController.createUser);
+router.delete('/users/:id', userController.deactivateUser); // NEU: User deaktivieren 
 
 router.post('/admin/reset-password', authController.resetPasswordByAdmin);
 
@@ -27,7 +28,7 @@ router.get('/dashboard', bookingController.getDashboard);
 router.get('/bookings', bookingController.getBookings);
 router.get('/export-excel', bookingController.exportExcel);
 router.get('/month-stats', bookingController.getMonthStats);
-router.put('/bookings/:id', (req,res) => res.json({status:"TODO"})); // Edit Booking Placeholder
+router.put('/bookings/:id', (req, res) => res.json({ status: "TODO" })); // Edit Booking Placeholder
 router.post('/stamp-manual', bookingController.manualStamp); // NEU
 router.get('/history', bookingController.getHistory); // NEU
 

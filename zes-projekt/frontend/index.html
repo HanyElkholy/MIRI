@@ -179,26 +179,29 @@
 
             <nav class="hidden lg:flex items-center gap-1 bg-[#112240] p-1 rounded-lg border border-border">
                 <button id="nav-dashboard-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-chart-line mr-2"></i>Dashboard</button>
                 <button id="nav-live-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-satellite-dish mr-2 text-red-500"></i>Echtzeit</button>
                 <button id="nav-overview-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-list-ul mr-2"></i>Journal</button>
                 <button id="nav-requests-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-file-signature mr-2"></i>Anträge</button>
                 <button id="nav-monthly-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-calendar-alt mr-2"></i>Kalender</button>
                 <button id="nav-account-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-wallet mr-2"></i>Konto</button>
                 <button id="nav-history-button"
-                    class="nav-item px-4 py-2 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide"><i
                         class="fas fa-history mr-2"></i>Historie</button>
+                <button id="nav-users-button"
+                    class="nav-item px-3 py-1.5 text-xs rounded transition hover:text-white text-textMuted font-bold uppercase tracking-wide hidden"><i
+                        class="fas fa-users mr-2"></i>Mitarbeiter</button>
             </nav>
 
             <div class="flex items-center gap-6">
@@ -210,11 +213,6 @@
 
                 <div class="relative">
                     <div class="flex items-center gap-6">
-                        <button id="nav-create-user-btn"
-                            class="hidden text-brand hover:text-white transition border border-brand/50 p-2 rounded hover:bg-brand/20"
-                            title="Neuer Mitarbeiter">
-                            <i class="fas fa-user-plus"></i>
-                        </button>
 
 
                         <div class="hidden xl:block text-right">
@@ -628,12 +626,46 @@
                                     <th class="px-6 py-3 whitespace-nowrap">Zeitstempel</th>
                                     <th class="px-6 py-3 whitespace-nowrap">Akteur</th>
                                     <th class="px-6 py-3 whitespace-nowrap">Aktion</th>
+                                    <th class="px-6 py-3 whitespace-nowrap">Betroffener User</th>
                                     <th class="px-6 py-3 whitespace-nowrap">Alt</th>
                                     <th class="px-6 py-3 whitespace-nowrap">Neu</th>
                                 </tr>
                             </thead>
                             <tbody id="audit-log-body"
                                 class="text-xs divide-y divide-border text-gray-400 font-mono whitespace-nowrap">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-users" class="content-section hidden animate-fade space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h1
+                        class="text-2xl font-brand font-bold text-white border-l-4 border-blue-400 pl-4 uppercase tracking-wide">
+                        Mitarbeiter Verwaltung
+                    </h1>
+                    <button onclick="document.getElementById('create-user-modal').classList.remove('hidden')"
+                        class="bg-brand hover:bg-brandHover text-white px-4 py-2 rounded text-xs font-bold uppercase tracking-widest shadow transition">
+                        <i class="fas fa-plus mr-2"></i> Neu
+                    </button>
+                </div>
+
+                <div class="card-base overflow-hidden border border-border">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left min-w-[700px]">
+                            <thead
+                                class="bg-[#0d1b33] text-[10px] uppercase text-textMuted font-bold border-b border-border">
+                                <tr>
+                                    <th class="px-6 py-3">Name</th>
+                                    <th class="px-6 py-3">Benutzername</th>
+                                    <th class="px-6 py-3">Chip ID</th>
+                                    <th class="px-6 py-3 text-center">Status</th>
+                                    <th class="px-6 py-3 text-center">Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="text-sm divide-y divide-border text-gray-300">
+                                <!-- JS Rendered -->
                             </tbody>
                         </table>
                     </div>
@@ -685,6 +717,11 @@
             <button id="mob-nav-history"
                 class="text-left p-4 rounded bg-[#112240] text-white border-l-4 border-gray-500 font-brand uppercase tracking-wider">
                 <i class="fas fa-history mr-3 w-6 text-center"></i> Historie
+            </button>
+
+            <button id="mob-nav-users"
+                class="hidden text-left p-4 rounded bg-[#112240] text-white border-l-4 border-blue-400 font-brand uppercase tracking-wider">
+                <i class="fas fa-users mr-3 w-6 text-center"></i> Mitarbeiter
             </button>
         </div>
 
