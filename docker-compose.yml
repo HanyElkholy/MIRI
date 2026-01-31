@@ -52,6 +52,7 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./apps/landing:/usr/share/nginx/html/landing:ro
       - ./apps/miri/frontend:/usr/share/nginx/html/miri:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - api
 
