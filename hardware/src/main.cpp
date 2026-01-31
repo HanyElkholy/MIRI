@@ -286,7 +286,8 @@ void sendStampToServer(String cardId) {
     }
 
     WiFiClientSecure client; 
-    client.setInsecure();
+    client.setCACert(rootCA_cert); // ENABLE SSL VERIFICATION
+    // client.setInsecure(); // REMOVED INSECURE MODE
     HTTPClient http;
     
     if (!http.begin(client, serverName)) {
@@ -446,7 +447,8 @@ void syncOfflineData() {
             // Assuming we only want to retry actual attendance "ATTEMPT"s
             if (type == "ATTEMPT") {
                  WiFiClientSecure client;
-                 client.setInsecure();
+                 client.setCACert(rootCA_cert); // ENABLE SSL VERIFICATION
+                 // client.setInsecure();
                  HTTPClient http;
                  
                  if (http.begin(client, serverName)) {
@@ -607,8 +609,8 @@ void setup() {
     bool timeSynced = (time(nullptr) > 100000);
     Serial.println(timeSynced ? "Time Sync: OK" : "Time Sync: Fail (Fallback to Insecure)");
 
-    // OTA Init: Force Insecure for Testing (Fixes Error -1)
-    otaManager.setServer(otaVersionUrl, otaBinaryUrl, nullptr); // FORCE INSECURE
+    // OTA Init: Secure Mode
+    otaManager.setServer(otaVersionUrl, otaBinaryUrl, rootCA_cert); // ENABLE SSL VERIFICATION
     otaManager.setProgressCallback([](int progress, String status) {
         // USE SPRITE TO AVOID GLITCHES/FLICKER
         sprite.fillScreen(TFT_BLACK);

@@ -4,13 +4,19 @@ const bcrypt = require('bcrypt');
 
 const { logAudit } = require('../utils/logger'); // <--- WICHTIG: Logger importieren
 
+// Simple Sanitizer without external lib (npm failed)
+function sanitize(str) {
+    if (!str) return '';
+    return str.replace(/[<>"'/]/g, ''); // Basic XSS protection
+}
+
 
 
 // User Liste laden
 
 exports.getUsers = async (req, res) => {
 
-    const customerId = req.user.customerId; 
+    const customerId = req.user.customerId;
 
     try {
 
@@ -48,7 +54,12 @@ exports.createUser = async (req, res) => {
 
     const { username, displayName, cardId, vacationDays, dailyTarget } = req.body;
 
-    const customerId = req.user.customerId; 
+    // Sanitization
+    const safeUsername = sanitize(username);
+    const safeDisplayName = sanitize(displayName);
+    const safeCardId = sanitize(cardId);
+
+    const customerId = req.user.customerId;
 
 
 
@@ -64,7 +75,7 @@ exports.createUser = async (req, res) => {
 
              VALUES ($1, $2, $3, 'user', $4, $5, $6, TRUE, $7)`,
 
-            [username, initialPwHash, displayName, cardId, vacationDays || 30, dailyTarget || 8.0, customerId]
+            [safeUsername, initialPwHash, safeDisplayName, safeCardId, vacationDays || 30, dailyTarget || 8.0, customerId]
 
         );
 
@@ -74,7 +85,9 @@ exports.createUser = async (req, res) => {
 
         // Wer (Admin) hat Was (Mitarbeiter angelegt) getan?
 
-        await logAudit(customerId, req.user.displayName, 'Mitarbeiter angelegt', '', username, displayName);
+        // Wer (Admin) hat Was (Mitarbeiter angelegt) getan?
+
+        await logAudit(customerId, req.user.displayName, 'Mitarbeiter angelegt', '', safeUsername, safeDisplayName);
         // ----------------------------
 
 

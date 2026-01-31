@@ -10,8 +10,8 @@ try {
     // Allgemeines Rate-Limit für alle API-Routen
     const generalLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, // 15 Minuten
-        max: 2000, // ERHÖHT für Büro-IPs (Viele Nutzer hinter einer IP)
-        message: 'Zu viele Anfragen von dieser IP, bitte versuche es später erneut.',
+        max: 200, // 200 Requests pro 15min pro IP
+        message: { status: "error", message: 'Zu viele Anfragen von dieser IP, bitte versuche es später erneut.' },
         standardHeaders: true,
         legacyHeaders: false,
     });
@@ -19,8 +19,8 @@ try {
     // Strengeres Rate-Limit für Login-Endpunkt
     const loginLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, // 15 Minuten
-        max: 50, // ERHÖHT: 50 Versuche pro 15min (Damit sich nicht das ganze Büro blockt)
-        message: 'Zu viele Login-Versuche, bitte versuche es in 15 Minuten erneut.',
+        max: 10, // 10 Versuche pro 15min
+        message: { status: "error", message: 'Zu viele Login-Versuche, bitte warten Sie 15 Minuten.' },
         standardHeaders: true,
         legacyHeaders: false,
         skipSuccessfulRequests: true, // Erfolgreiche Logins zählen nicht

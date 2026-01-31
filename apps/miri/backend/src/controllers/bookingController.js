@@ -1,6 +1,13 @@
 const db = require('../config/db');
 const ExcelJS = require('exceljs');
 const { logAudit } = require('../utils/logger');
+const crypto = require('crypto'); // NEU: Für HMAC
+require('dotenv').config();
+
+// HILFSFUNKTION: HMAC Erstellen
+function createHMAC(data, key) {
+    return crypto.createHmac('sha256', key).update(data).digest('hex');
+}
 
 // HILFSFUNKTION: Zählt Werktage (Mo-Fr) in einem Monat
 function getWorkingDaysInMonth(year, month) {
@@ -301,8 +308,40 @@ exports.manualStamp = async (req, res) => {
 
 // 4. Hardware Stempeln (Karte) - MIT URLAUBS-SPERRE
 exports.stamp = async (req, res) => {
-    const { cardId } = req.body;
+    const { cardId, timestamp, nonce, signature } = req.body;
     if (!cardId) return res.status(400).json({ message: "Keine Karten-ID" });
+
+    // --- NEU: SICHERHEITS-CHECK (HMAC) ---
+    // 1. Prüfen ob Signatur da ist
+    if (!timestamp || !nonce || !signature) {
+        console.warn(`[SECURITY] Fehlende Signatur-Daten von CardID: ${cardId}`);
+        return res.status(401).json({ message: "Auth Error: Fehlende Signatur" });
+    }
+
+    // 2. Replay-Attacken verhindern (Timestamp darf max 5 Min alt sein)
+    const nowTs = Math.floor(Date.now() / 1000);
+    const reqTs = parseInt(timestamp);
+    if (Math.abs(nowTs - reqTs) > 300) { // 300 Sekunden = 5 Minuten
+        console.warn(`[SECURITY] Replay-Attacke oder falsche Zeit? CardID: ${cardId}, Delta: ${nowTs - reqTs}s`);
+        return res.status(401).json({ message: "Auth Error: Zeitstempel ungültig" });
+    }
+
+    // 3. HMAC verifizieren
+    // ACHTUNG: Das Secret muss mit dem im ESP32 übereinstimmen!
+    // Idealweise aus .env laden. Für diesen Fix nutzen wir den Wert aus main.cpp oder .env
+    const DEVICE_SECRET = process.env.DEVICE_SECRET || "MEIN_GEHEIMES_DEVICE_PASSWORT";
+
+    const payload = `${cardId}:${timestamp}:${nonce}`;
+    const expectedSig = createHMAC(payload, DEVICE_SECRET);
+
+    // Timing-Safe Compare wäre besser, aber für einfaches IoT reicht String-Vergleich oft
+    // FIX: Case-Insensitive Check (Arduino sendet oft HEX in Großbuchstaben via String(val, HEX))
+    if (signature.toLowerCase() !== expectedSig.toLowerCase()) {
+        console.warn(`[SECURITY] Falsche Signatur von CardID: ${cardId}`);
+        console.debug(`Expected: ${expectedSig}, Got: ${signature}`);
+        return res.status(403).json({ message: "Auth Error: Signatur ungültig" });
+    }
+    // --- ENDE HMAC CHECK ---
 
     try {
         const uRes = await db.query('SELECT * FROM users WHERE card_id = $1', [cardId]);
