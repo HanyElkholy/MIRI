@@ -9,7 +9,7 @@ services:
       - POSTGRES_DB=${DB_NAME:-zes_db}
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./apps/miri/backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     expose:
       - "5432"
     healthcheck:
@@ -18,7 +18,7 @@ services:
       timeout: 5s
       retries: 5
   api:
-    build: ./backend
+    build: ./apps/miri/backend
     restart: always
     ports:
       - "${PORT:-3001}:3001"
