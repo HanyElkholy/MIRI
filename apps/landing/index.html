@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ahmtimus - Innovative Software Solutions</title>
     <meta name="description" content="Ahmtimus bietet innovative Softwarelösungen wie das MIRI Zeiterfassungssystem.">
-    
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,26 +51,44 @@
         }
     </script>
     <style>
-        body { background-color: #0a192f; color: #ccd6f6; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass { background: rgba(17, 34, 64, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .glow-text { text-shadow: 0 0 20px rgba(0, 78, 130, 0.6); }
+        body {
+            background-color: #0a192f;
+            color: #ccd6f6;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(17, 34, 64, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0, 78, 130, 0.6);
+        }
     </style>
 </head>
+
 <body class="flex flex-col min-h-screen">
 
     <!-- Navigation -->
     <nav class="fixed w-full z-50 glass transition-all duration-300" id="navbar">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <a href="#" class="text-2xl font-brand font-bold text-white tracking-wider flex items-center gap-2">
-                <div class="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,78,130,0.5)]">
-                    <span class="text-white text-lg">A</span>
-                </div>
+            <a href="#" class="text-2xl font-brand font-bold text-white tracking-wider flex items-center gap-3">
+                <svg class="w-10 h-10 text-brand" viewBox="0 0 100 100" fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" opacity="1" />
+                    <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
+                    <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
+                </svg>
                 AHMTIMUS
             </a>
             <div class="hidden md:flex items-center gap-8">
                 <a href="#products" class="text-textMuted hover:text-brand transition duration-300">Produkte</a>
                 <a href="#about" class="text-textMuted hover:text-brand transition duration-300">Über uns</a>
-                <a href="/app/" class="bg-brand hover:bg-brandHover text-white px-6 py-2 rounded-full font-medium transition duration-300 shadow-[0_0_15px_rgba(0,78,130,0.4)]">
+                <a href="/miri/"
+                    class="bg-brand hover:bg-brandHover text-white px-6 py-2 rounded-full font-medium transition duration-300 shadow-[0_0_15px_rgba(0,78,130,0.4)]">
                     Login App
                 </a>
             </div>
@@ -82,32 +103,42 @@
 
         <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
             <div class="animate-fade-in">
-                <h2 class="text-brand font-brand font-bold uppercase tracking-widest mb-4 text-sm">Software & Hardware Engineering</h2>
+                <h2 class="text-brand font-brand font-bold uppercase tracking-widest mb-4 text-sm">Software & Hardware
+                    Engineering</h2>
                 <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-                    Zukunft <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 glow-text">gestalten.</span>
+                    Zukunft <br> <span
+                        class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 glow-text">gestalten.</span>
                 </h1>
                 <p class="text-textMuted text-lg mb-8 max-w-lg leading-relaxed">
-                    Wir entwickeln maßgeschneiderte Softwarelösungen und IoT-Systeme für moderne Unternehmen. Effizienz, Sicherheit und Design in Perfektion.
+                    Wir entwickeln maßgeschneiderte Softwarelösungen und IoT-Systeme für moderne Unternehmen. Effizienz,
+                    Sicherheit und Design in Perfektion.
                 </p>
                 <div class="flex gap-4">
-                    <a href="#products" class="px-8 py-3 bg-white text-bg font-bold rounded-full hover:bg-gray-200 transition shadow-lg">Lösungen entdecken</a>
-                    <a href="/app/" class="px-8 py-3 border border-brand text-brand hover:bg-brand/10 rounded-full font-bold transition">Zum Login</a>
+                    <a href="#products"
+                        class="px-8 py-3 bg-white text-bg font-bold rounded-full hover:bg-gray-200 transition shadow-lg">Lösungen
+                        entdecken</a>
+                    <a href="/miri/"
+                        class="px-8 py-3 border border-brand text-brand hover:bg-brand/10 rounded-full font-bold transition">Zum
+                        Login</a>
                 </div>
             </div>
             <div class="relative animate-float hidden md:block">
                 <!-- Abstract Tech Visualization -->
-                <div class="relative w-full aspect-square bg-card/50 rounded-2xl border border-border p-8 backdrop-blur-sm shadow-2xl transform rotate-3 hover:rotate-0 transition duration-700">
+                <div
+                    class="relative w-full aspect-square bg-card/50 rounded-2xl border border-border p-8 backdrop-blur-sm shadow-2xl transform rotate-3 hover:rotate-0 transition duration-700">
                     <div class="absolute inset-0 bg-gradient-to-br from-brand/10 to-transparent rounded-2xl"></div>
                     <div class="grid grid-cols-2 gap-4 h-full">
                         <div class="bg-bg/80 rounded-xl p-4 border border-border flex flex-col justify-end">
                             <div class="h-2 w-12 bg-green-400 rounded-full mb-2"></div>
                             <div class="h-2 w-20 bg-gray-600 rounded-full"></div>
                         </div>
-                        <div class="bg-bg/80 rounded-xl p-4 border border-border flex flex-col justify-center items-center">
+                        <div
+                            class="bg-bg/80 rounded-xl p-4 border border-border flex flex-col justify-center items-center">
                             <i class="fas fa-fingerprint text-4xl text-brand mb-2"></i>
                             <span class="text-xs text-textMuted">Secure Auth</span>
                         </div>
-                        <div class="bg-brand/20 rounded-xl p-4 border border-border col-span-2 flex items-center justify-between">
+                        <div
+                            class="bg-brand/20 rounded-xl p-4 border border-border col-span-2 flex items-center justify-between">
                             <span class="font-mono text-sm text-brand">SYSTEM ACTIVE</span>
                             <div class="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_#22c55e]"></div>
                         </div>
@@ -120,36 +151,48 @@
     <!-- Products Section -->
     <section id="products" class="py-24 bg-card/50 relative">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-bold text-white mb-16 text-center font-brand">Unsere <span class="text-brand">Lösungen</span></h2>
-            
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-16 text-center font-brand">Unsere <span
+                    class="text-brand">Lösungen</span></h2>
+
             <div class="grid md:grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
                 <!-- MIRI Product Card -->
-                <div class="bg-bg border border-border rounded-xl overflow-hidden hover:border-brand/50 transition duration-300 group shadow-xl hover:shadow-[0_0_30px_rgba(0,78,130,0.2)]">
+                <div
+                    class="bg-bg border border-border rounded-xl overflow-hidden hover:border-brand/50 transition duration-300 group shadow-xl hover:shadow-[0_0_30px_rgba(0,78,130,0.2)]">
                     <div class="p-8">
                         <div class="flex justify-between items-start mb-6">
-                            <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-brand text-2xl">
+                            <div
+                                class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center text-brand text-2xl">
                                 <i class="fas fa-clock"></i>
                             </div>
-                            <span class="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-mono border border-green-500/20">LIVE</span>
+                            <span
+                                class="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-mono border border-green-500/20">LIVE</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-brand transition">MIRI Zeiterfassung</h3>
+                        <h3 class="text-2xl font-bold text-white mb-3 group-hover:text-brand transition">MIRI
+                            Zeiterfassung</h3>
                         <p class="text-textMuted mb-6 leading-relaxed">
-                            Das intelligente System für moderne Zeiterfassung. Hardware-Terminal Integration, Echtzeit-Monitoring und automatisierte Urlaubsverwaltung.
+                            Das intelligente System für moderne Zeiterfassung. Hardware-Terminal Integration,
+                            Echtzeit-Monitoring und automatisierte Urlaubsverwaltung.
                         </p>
                         <ul class="space-y-2 mb-8 text-sm text-gray-400">
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i> RFID & PIN Authentifizierung</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i> DSGVO-konforme Speicherung</li>
-                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i> Nahtloser Excel Export</li>
+                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i> RFID &
+                                PIN Authentifizierung</li>
+                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i>
+                                DSGVO-konforme Speicherung</li>
+                            <li class="flex items-center gap-2"><i class="fas fa-check text-brand text-xs"></i>
+                                Nahtloser Excel Export</li>
                         </ul>
-                        <a href="/app/" class="block w-full text-center bg-brand hover:bg-brandHover text-white py-3 rounded-lg font-medium transition cursor-pointer">
+                        <a href="/miri/"
+                            class="block w-full text-center bg-brand hover:bg-brandHover text-white py-3 rounded-lg font-medium transition cursor-pointer">
                             System Aufrufen <i class="fas fa-arrow-right ml-2 text-xs"></i>
                         </a>
                     </div>
                 </div>
 
                 <!-- Placeholder for Next Product -->
-                <div class="bg-bg border border-border rounded-xl p-8 flex flex-col justify-center items-center text-center opacity-50 hover:opacity-100 transition duration-500">
-                    <div class="w-16 h-16 bg-gray-700/20 rounded-full flex items-center justify-center mb-6 text-gray-500">
+                <div
+                    class="bg-bg border border-border rounded-xl p-8 flex flex-col justify-center items-center text-center opacity-50 hover:opacity-100 transition duration-500">
+                    <div
+                        class="w-16 h-16 bg-gray-700/20 rounded-full flex items-center justify-center mb-6 text-gray-500">
                         <i class="fas fa-rocket text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Comming Soon</h3>
@@ -165,7 +208,12 @@
             <div class="grid md:grid-cols-3 gap-12 mb-12">
                 <div>
                     <div class="flex items-center gap-2 mb-4">
-                        <div class="w-6 h-6 bg-brand rounded flex items-center justify-center text-white text-xs font-bold">A</div>
+                        <svg class="w-6 h-6 text-brand" viewBox="0 0 100 100" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M50 5 L88 26 V48 L50 28 L12 48 V26 L50 5 Z" opacity="1" />
+                            <path d="M92 30 V74 L54 96 L54 54 L92 30 Z" opacity="0.85" />
+                            <path d="M8 30 L46 54 V96 L8 74 V30 Z" opacity="0.7" />
+                        </svg>
                         <span class="font-brand font-bold text-white tracking-widest">AHMTIMUS</span>
                     </div>
                     <p class="text-textMuted text-sm leading-relaxed">
@@ -175,8 +223,10 @@
                 <div>
                     <h4 class="text-white font-bold mb-4">Rechtliches</h4>
                     <ul class="space-y-2 text-sm text-textMuted">
-                        <li><a href="#" onclick="document.getElementById('modal-impressum').classList.remove('hidden')" class="hover:text-brand transition">Impressum</a></li>
-                        <li><a href="#" onclick="document.getElementById('modal-privacy').classList.remove('hidden')" class="hover:text-brand transition">Datenschutzerklärung</a></li>
+                        <li><a href="#" onclick="document.getElementById('modal-impressum').classList.remove('hidden')"
+                                class="hover:text-brand transition">Impressum</a></li>
+                        <li><a href="#" onclick="document.getElementById('modal-privacy').classList.remove('hidden')"
+                                class="hover:text-brand transition">Datenschutzerklärung</a></li>
                     </ul>
                 </div>
                 <div>
@@ -194,9 +244,12 @@
     </footer>
 
     <!-- Impressum Modal -->
-    <div id="modal-impressum" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div id="modal-impressum"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-border rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative">
-            <button onclick="document.getElementById('modal-impressum').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <button onclick="document.getElementById('modal-impressum').classList.add('hidden')"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white"><i
+                    class="fas fa-times text-xl"></i></button>
             <h2 class="text-2xl font-bold text-white mb-6">Impressum</h2>
             <div class="text-textMuted text-sm space-y-4">
                 <p class="font-bold text-white">Angaben gemäß § 5 TMG</p>
@@ -212,7 +265,8 @@
                 </p>
                 <p>
                     <strong>Streitschlichtung:</strong><br>
-                    Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr.<br>
+                    Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
+                    https://ec.europa.eu/consumers/odr.<br>
                     Unsere E-Mail-Adresse finden Sie oben im Impressum.
                 </p>
             </div>
@@ -220,22 +274,30 @@
     </div>
 
     <!-- Privacy Modal -->
-    <div id="modal-privacy" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+    <div id="modal-privacy"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-card border border-border rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8 relative">
-            <button onclick="document.getElementById('modal-privacy').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <button onclick="document.getElementById('modal-privacy').classList.add('hidden')"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white"><i
+                    class="fas fa-times text-xl"></i></button>
             <h2 class="text-2xl font-bold text-white mb-6">Datenschutzerklärung</h2>
             <div class="text-textMuted text-sm space-y-4">
                 <p><strong>1. Datenschutz auf einen Blick</strong></p>
-                <p>Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften.</p>
-                
+                <p>Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten
+                    vertraulich und entsprechend der gesetzlichen Datenschutzvorschriften.</p>
+
                 <p><strong>2. Hosting</strong></p>
-                <p>Wir hosten unsere Inhalte bei Amazon Web Services (Lightsail). Anbieter ist die Amazon Web Services EMEA SARL.</p>
+                <p>Wir hosten unsere Inhalte bei Amazon Web Services (Lightsail). Anbieter ist die Amazon Web Services
+                    EMEA SARL.</p>
 
                 <p><strong>3. Datenerfassung</strong></p>
-                <p>Diese Landingpage selbst verwendet keine Cookies und trackt keine Nutzerdaten. Beim Klick auf "Login App" werden Sie zur Applikation weitergeleitet, für die eigene Datenschutzbestimmungen gelten (Login erforderlich).</p>
+                <p>Diese Landingpage selbst verwendet keine Cookies und trackt keine Nutzerdaten. Beim Klick auf "Login
+                    App" werden Sie zur Applikation weitergeleitet, für die eigene Datenschutzbestimmungen gelten (Login
+                    erforderlich).</p>
             </div>
         </div>
     </div>
 
 </body>
+
 </html>
