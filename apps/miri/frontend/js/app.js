@@ -133,17 +133,28 @@ if (loginForm) {
                 // We will add it to the import list in a separate edit if needed, or just use sessionStorage directly here as fallback.
 
                 // Let's rely on the dynamic import for now to avoid changing line 1 which might be risky if I miss something
-                // Actually, let's just do it manually here to be 100% safe and simple.
+                // Actually, let's just do it manually here to be 100% safe
                 sessionStorage.setItem('authToken', data.token);
                 sessionStorage.setItem('user', JSON.stringify(data.user));
-
                 location.reload();
             } else {
-                alert('Anmeldung fehlgeschlagen: ' + (data.message || 'Unbekannter Fehler'));
+                const errorEl = document.getElementById('error-message');
+                if (errorEl) {
+                    errorEl.textContent = data.message || 'Anmeldung fehlgeschlagen';
+                    errorEl.classList.remove('hidden');
+                    // Shake animation effect
+                    errorEl.classList.add('animate-pulse');
+                } else {
+                    alert('Anmeldung fehlgeschlagen: ' + (data.message || 'Unbekannter Fehler'));
+                }
             }
         } catch (err) {
             console.error(err);
-            alert('Server Fehler: Bitte später erneut versuchen.');
+            const errorEl = document.getElementById('error-message');
+            if (errorEl) {
+                errorEl.textContent = 'Server nicht erreichbar. Bitte später versuchen.';
+                errorEl.classList.remove('hidden');
+            }
         }
     });
 }
