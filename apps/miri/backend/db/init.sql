@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS customers (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    working_days INTEGER[] DEFAULT '{1,2,3,4,5}', -- Mo-Fr standard
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

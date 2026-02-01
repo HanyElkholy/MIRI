@@ -473,9 +473,8 @@ exports.exportExcel = async (req, res) => {
 
         queryStr += ` ORDER BY b.date ASC, b.start_time ASC`;
 
-        // 2. Daten holen (HIER WAR DAS PROBLEM: pool statt db nutzen!)
-        // Wir probieren beides, falls du db oder pool nutzt, aber pool ist wahrscheinlicher.
-        const result = await (typeof pool !== 'undefined' ? pool : db).query(queryStr, queryParams);
+        // 2. Daten holen
+        const result = await db.query(queryStr, queryParams);
         const bookings = result.rows;
 
         // 3. Excel Workbook erstellen

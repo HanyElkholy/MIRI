@@ -21,13 +21,12 @@ exports.getUsers = async (req, res) => {
     try {
 
         const result = await db.query(
-
-            `SELECT id, display_name as "displayName", role, daily_target as "dailyTarget", vacation_days as "vacationDays" 
-
-             FROM users WHERE customer_id = $1 ORDER BY display_name`,
-
+            `SELECT u.id, u.display_name as "displayName", u.role, u.daily_target as "dailyTarget", u.vacation_days as "vacationDays", c.working_days as "workingDays"
+             FROM users u
+             JOIN customers c ON u.customer_id = c.id
+             WHERE u.customer_id = $1 
+             ORDER BY u.display_name`,
             [customerId]
-
         );
 
         res.json(result.rows);

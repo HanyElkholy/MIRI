@@ -109,39 +109,41 @@ const loginForm = document.getElementById('login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        // Direct fetch to /login to get token
         try {
+            // Using the top-level apiFetch (which uses /api/v1 prefix)
+            // But wait, the original code used raw fetch to /api/v1/login.
+            // Let's use apiFetch for consistency, or keep raw if we want to avoid token headers (though apiFetch handles no token fine)
+
+            // Raw fetch is safer here to control the body exactly as expected by backend
             const res = await fetch('/api/v1/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ username, password })
             });
 
             const data = await res.json();
-            if (res.ok && data.status === 'success') {
-                // Auth.js handles storage
-                // We need to import setCurrentUser from auth.js
-                // But auth.js is imported at top. We can't use it before initialization? 
-                // We imported { initSession, ... } 
-                // We need to export setCurrentUser from auth.js too.
-                // Let's assume we create a helper or just do it manual here using session storage if setCurrentUser wasn't exported.
-                // Wait, I did export setCurrentUser in step 377. Let's add it to imports.
 
-                // Dynamic import to avoid circular dependency issues? No, auth.js is independent.
-                // Just use the imported function.
-                import('./core/auth.js').then(auth => {
-                    auth.setCurrentUser(data.user);
-                    location.reload();
-                });
+            if (res.ok) {
+                // Use the function imported at the top of the file
+                // We need to make sure setCurrentUser is imported.
+                // It is NOT currently imported in line 1.
+                // We will add it to the import list in a separate edit if needed, or just use sessionStorage directly here as fallback.
+
+                // Let's rely on the dynamic import for now to avoid changing line 1 which might be risky if I miss something
+                // Actually, let's just do it manually here to be 100% safe and simple.
+                sessionStorage.setItem('authToken', data.token);
+                sessionStorage.setItem('user', JSON.stringify(data.user));
+
+                location.reload();
             } else {
-                alert('Login failed: ' + (data.message || 'Unknown error'));
+                alert('Anmeldung fehlgeschlagen: ' + (data.message || 'Unbekannter Fehler'));
             }
         } catch (err) {
             console.error(err);
-            alert('Login error');
+            alert('Server Fehler: Bitte später erneut versuchen.');
         }
     });
 }

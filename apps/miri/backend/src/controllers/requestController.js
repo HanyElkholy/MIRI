@@ -103,6 +103,11 @@ exports.createRequest = async (req, res) => {
 
 // 3. Status ändern (Genehmigen / Ablehnen)
 exports.updateRequestStatus = async (req, res) => {
+    // CRITICAL SECURITY FIX: Only Admins can approve/reject
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Nicht erlaubt. Nur Administratoren dürfen Anträge bearbeiten." });
+    }
+
     const { id } = req.params;
     const { status } = req.body;
     const actor = req.user.displayName;
